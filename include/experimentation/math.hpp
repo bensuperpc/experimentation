@@ -30,6 +30,23 @@ constexpr auto schwarzschild_radius(const T1& mass, const T2& c = 299792458, con
   return (2 * G * mass) / (c * c);
 }
 
+// Check if triangle is right angled
+// https://en.wikipedia.org/wiki/Pythagorean_theorem
+
+template<typename T1 = double, typename T2 = double, typename T3 = double>
+constexpr auto is_right_angled(const T1& a, const T2& b, const T3& c) -> bool
+{
+  // Check if T is floating point or integer
+  static_assert(std::is_floating_point<T1>::value || std::is_integral<T1>::value,
+                "T1 must be floating point or integer");
+  static_assert(std::is_floating_point<T2>::value || std::is_integral<T2>::value,
+                "T2 must be floating point or integer");
+  static_assert(std::is_floating_point<T3>::value || std::is_integral<T3>::value,
+                "T3 must be floating point or integer");
+
+  return (a * a) + (b * b) == (c * c);
+}
+
 }  // namespace experimentation
 
 }  // namespace math

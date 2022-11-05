@@ -83,6 +83,7 @@
         "variant": "cpp",
         "*.inc": "cpp",
         "regex": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "ranges": "cpp"
     }
 }
