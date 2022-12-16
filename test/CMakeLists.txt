@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(experimentationTests LANGUAGES CXX)
+project(experimentationTests LANGUAGES C CXX)
 
 include(../cmake/project-is-top-level.cmake)
 include(../cmake/folders.cmake)
@@ -46,12 +46,13 @@ function(add_bench_fn BENCH_NAME)
 endfunction()
 
 if(NOT WIN32)
-include(../cmake/lib/gtest.cmake)
-include(../cmake/lib/benchmark.cmake)
+  include(../cmake/lib/gtest.cmake)
+  include(../cmake/lib/benchmark.cmake)
   # Add tests
   add_test_fn(experimentation_test)
 
   # Add bench
+  add_bench_fn(vector_add_bench)
   add_bench_fn(math_bench)
   add_bench_fn(string_bench)
   add_bench_fn(experimentation_bench)

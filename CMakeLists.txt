@@ -40,10 +40,14 @@ endif()
 # ---- Examples ----
 
 if(PROJECT_IS_TOP_LEVEL)
-  option(BUILD_EXAMPLES "Build examples tree." "${experimentation_DEVELOPER_MODE}")
-  if(BUILD_EXAMPLES)
-    add_subdirectory(example)
-  endif()
+  #set(BUILD_EXAMPLES_DEFAULT ON CACHE BOOL "Build examples tree." FORCE)
+  #if(BUILD_EXAMPLES)
+  #  message(STATUS "Building examples")
+  #  add_subdirectory(example)
+  #else()
+  #  message(STATUS "Not building examples")
+  #endif()
+  add_subdirectory(example)
 endif()
 
 # ---- Developer mode ----
