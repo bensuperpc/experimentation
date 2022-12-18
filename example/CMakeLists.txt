@@ -22,6 +22,7 @@ function(add_example_cpp NAME PATH)
   target_link_libraries("${NAME}" PRIVATE nlohmann_json::nlohmann_json)
   target_link_libraries("${NAME}" PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries("${NAME}" PRIVATE raylib raylib_cpp)
+  target_link_libraries("${NAME}" PRIVATE ${OpenCV_LIBS})
   target_compile_features("${NAME}" PRIVATE cxx_std_20)
   add_custom_target("run_${NAME}" COMMAND "${NAME}" VERBATIM)
   add_dependencies("run_${NAME}" "${NAME}")
@@ -42,3 +43,6 @@ add_example_cpp(json_letter json_letter)
 
 # Raylib
 add_example_cpp(rect raylib/rect)
+
+# OpenCV
+add_example_cpp(pixel_counter pixel_counter)
