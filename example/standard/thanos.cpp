@@ -18,6 +18,7 @@ auto main() -> int
     return 0;
   }
 
+  // List all files in the current directory
   std::vector<std::string> list;
   benlib::filesystem::experimentation::list_all_files(list, ".");
   /*
@@ -29,10 +30,8 @@ auto main() -> int
   // Shuffle the list with a random generator
   std::random_device rd;
   const std::uint64_t seed = (static_cast<std::uint64_t>(rd()) << 32) | rd();
-  std::cout << "Seed: " << seed << std::endl;
   std::mt19937_64 rng(seed);
 
-  // Shuffle the list
   std::shuffle(list.begin(), list.end(), rng);
 
   // Delete the first half of the list
