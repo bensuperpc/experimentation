@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.14.0)
 
 include(FetchContent)
 
-set(BUILD_RAYLIB_CPP_EXAMPLES OFF CACHE BOOL "" FORCE)
-
 find_package(json QUIET)
 
 if (NOT json_FOUND)

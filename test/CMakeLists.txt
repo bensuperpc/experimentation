@@ -50,12 +50,13 @@ if(NOT WIN32)
   include(../cmake/lib/benchmark.cmake)
   # Add tests
   add_test_fn(experimentation_test)
+  add_test_fn(math_test)
 
   # Add bench
-  add_bench_fn(vector_add_bench)
-  add_bench_fn(math_bench)
-  add_bench_fn(string_bench)
-  add_bench_fn(experimentation_bench)
+  #add_bench_fn(vector_add_bench)
+  #add_bench_fn(math_bench)
+  #add_bench_fn(string_bench)
+  #add_bench_fn(experimentation_bench)
 endif()
 
 # ---- End-of-file commands ----

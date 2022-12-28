@@ -5,7 +5,7 @@
 static void basic1_bench(benchmark::State& state)
 {
   // Code inside this loop is measured repeatedly
-  auto size = state.range(0);
+  // auto size = state.range(0);
 
   std::string str = "";
   benchmark::DoNotOptimize(str);

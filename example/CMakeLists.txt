@@ -11,6 +11,9 @@ include(../cmake/lib/openmp.cmake)
 include(../cmake/lib/raylib.cmake)
 include(../cmake/lib/raylib-cpp.cmake)
 
+#include(../cmake/lib/zlib.cmake)
+#include(../cmake/lib/mcmap.cmake)
+
 if(PROJECT_IS_TOP_LEVEL)
   find_package(experimentation REQUIRED)
 endif()
@@ -22,6 +25,7 @@ function(add_example_cpp NAME PATH)
   target_link_libraries("${NAME}" PRIVATE nlohmann_json::nlohmann_json)
   target_link_libraries("${NAME}" PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries("${NAME}" PRIVATE raylib raylib_cpp)
+  #target_link_libraries("${NAME}" PRIVATE mcmap_core)
   target_link_libraries("${NAME}" PRIVATE ${OpenCV_LIBS})
   target_compile_features("${NAME}" PRIVATE cxx_std_20)
   add_custom_target("run_${NAME}" COMMAND "${NAME}" VERBATIM)
@@ -31,6 +35,7 @@ endfunction()
 
 # filesytem
 add_example_cpp(list_all_files standard/list_all_files)
+add_example_cpp(thanos standard/thanos)
 
 add_example_cpp(call_function_from_string call_function_from_string)
 
@@ -46,3 +51,6 @@ add_example_cpp(rect raylib/rect)
 
 # OpenCV
 add_example_cpp(pixel_counter pixel_counter)
+
+# Minecraft
+# add_example_cpp(mc_readchunk mc_readchunk)

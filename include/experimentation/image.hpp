@@ -10,11 +10,9 @@ namespace image
 namespace experimentation
 {
 
-
-
 }  // namespace experimentation
 
-}  // namespace string
+}  // namespace image
 
 }  // namespace benlib
 
