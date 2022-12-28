@@ -13,16 +13,22 @@ auto main() -> int
   std::cout << "Files have 50% chance to be deleted. Do you want to continue? (y/n): ";
   std::string answer;
   std::cin >> answer;
+
   if (answer != "y") {
     return 0;
   }
 
   std::vector<std::string> list;
   benlib::filesystem::experimentation::list_all_files(list, ".");
+  /*
+  for (const auto& entry : std::filesystem::recursive_directory_iterator(".")) {
+    list.emplace_back(entry.path().string());
+  }
+  */
 
   // Shuffle the list with a random generator
   std::random_device rd;
-  std::uint64_t seed = (static_cast<std::uint64_t>(rd()) << 32) | rd();
+  const std::uint64_t seed = (static_cast<std::uint64_t>(rd()) << 32) | rd();
   std::cout << "Seed: " << seed << std::endl;
   std::mt19937_64 rng(seed);
 
@@ -30,10 +36,11 @@ auto main() -> int
   std::shuffle(list.begin(), list.end(), rng);
 
   // Delete the first half of the list
-  for (size_t i = 0; i < list.size() / 2; ++i) {
-    std::cout << "File deleted: " << list[i] << std::endl;
+  for (decltype(list.size()) i = 0; i < list.size() / 2; ++i) {
     std::filesystem::remove(list[i]);
   }
+
+  std::cout << "Thanos snapped his fingers." << std::endl;
 
   return 0;
 }
