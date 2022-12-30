@@ -9,8 +9,8 @@
 
 struct Pixel
 {
-  uchar r, g, b;
-  size_t count;
+    uchar r, g, b;
+    size_t count;
 };
 
 auto main(int argc, char** argv) -> int

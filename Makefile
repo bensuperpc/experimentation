@@ -27,6 +27,9 @@ GENERATOR := Ninja
 CTEST_TIMEOUT := 1500
 CTEST_OPTIONS := --output-on-failure --verbose
 
+# LANG := en
+# LANG=$(LANG)
+
 DOCKCROSS_IMAGE := android-arm android-arm64 android-x86 android-x86_64 \
 	linux-x86 linux-x64 linux-x64-clang \
 	linux-arm64 linux-arm64-musl linux-arm64-full \

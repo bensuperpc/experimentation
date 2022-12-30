@@ -2,6 +2,7 @@
 Language: Cpp
 # BasedOnStyle: Chromium
 AccessModifierOffset: -2
+IndentAccessModifiers: true
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false

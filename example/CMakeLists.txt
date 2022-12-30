@@ -10,6 +10,7 @@ include(../cmake/lib/opencv.cmake)
 include(../cmake/lib/openmp.cmake)
 include(../cmake/lib/raylib.cmake)
 include(../cmake/lib/raylib-cpp.cmake)
+include(../cmake/lib/perlin_noise.cmake)
 
 #include(../cmake/lib/zlib.cmake)
 #include(../cmake/lib/mcmap.cmake)
@@ -27,6 +28,7 @@ function(add_example_cpp NAME PATH)
   target_link_libraries("${NAME}" PRIVATE raylib raylib_cpp)
   #target_link_libraries("${NAME}" PRIVATE mcmap_core)
   target_link_libraries("${NAME}" PRIVATE ${OpenCV_LIBS})
+  # target_link_libraries("${NAME}" PRIVATE perlin_noise)
   target_compile_features("${NAME}" PRIVATE cxx_std_20)
   add_custom_target("run_${NAME}" COMMAND "${NAME}" VERBATIM)
   add_dependencies("run_${NAME}" "${NAME}")
@@ -48,9 +50,13 @@ add_example_cpp(json_letter json_letter)
 
 # Raylib
 add_example_cpp(rect raylib/rect)
+add_example_cpp(cube raylib/cube)
+add_example_cpp(perlin_noise raylib/perlin_noise)
 
 # OpenCV
 add_example_cpp(pixel_counter pixel_counter)
 
 # Minecraft
 # add_example_cpp(mc_readchunk mc_readchunk)
+
+# Math
