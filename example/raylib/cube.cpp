@@ -25,15 +25,20 @@ struct cube
     bool display;
 };
 
-void generate(
-    std::vector<unsigned char>& v, std::vector<cube>& cubes, int width, int height, int depth, siv::PerlinNoise& perlin)
+void generate(std::vector<cube>& cubes,
+              const int width,
+              const int height,
+              const int depth,
+              siv::PerlinNoise& perlin,
+              const float cube_size)
 {
+  std::vector<unsigned char> v(width * height * depth, 0);
 #pragma omp parallel for collapse(3) schedule(auto)
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
       for (int z = 0; z < depth; z++) {
         const uint8_t value_int =
-            static_cast<uint8_t>(perlin.octave3D_01(x / 256.0, y / 256.0, z / 256.0, 16, 0.1) * 255.0);
+            static_cast<uint8_t>(perlin.octave3D_01(x / 256.0, y / 256.0, z / 256.0, 16, 0.2) * 255.0);
         v[x * height * depth + y * depth + z] = value_int;
       }
     }
@@ -44,13 +49,11 @@ void generate(
   std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
   std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
 
-  const float cube_size = 1.0f;
-
 #pragma omp parallel for collapse(2) schedule(auto)
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
       size_t vec_index = y * width + x;
-      unsigned char noise_value = v[vec_index] / 16;
+      unsigned char noise_value = v[vec_index] / 4;
       for (int z = 0; z < depth; z++) {
         if (z < noise_value) {
           cubes[vec_index * depth + z] = cube {x * cube_size,
@@ -86,9 +89,11 @@ int main()
   const int screen_height = 1440;
   const int target_fps = 30;
 
-  const float cube_size = 1.0f;
-
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
   raylib::Window window(screen_width, screen_height, "Minecube");
+  SetTargetFPS(target_fps);
+
+  const float cube_size = 1.0f;
 
   siv::PerlinNoise::seed_type seed = 2647393077u;
   std::cout << "seed: " << seed << std::endl;
@@ -100,9 +105,8 @@ int main()
   size_t vecZ = 128;
 
   size_t vec_size = vecX * vecY * vecZ;
-  std::vector<unsigned char> v(vec_size, 0);
   std::vector<cube> cubes(vec_size, cube {0, 0, 0, 0, 0, 0, Color {0, 0, 0, 0}, false});
-  generate(v, cubes, vecX, vecY, vecZ, perlin);
+  generate(cubes, vecX, vecY, vecZ, perlin, cube_size);
 
   raylib::Camera camera(
       raylib::Vector3(static_cast<float>(vecX * cube_size / 4), 64.0f, static_cast<float>(vecX * cube_size / 4)),
@@ -113,8 +117,6 @@ int main()
 
   camera.SetMode(CAMERA_ORBITAL);
 
-  SetTargetFPS(target_fps);
-
   while (!window.ShouldClose()) {
     camera.Update();
 
@@ -122,7 +124,7 @@ int main()
       decltype(seed) seed = std::random_device()();
       std::cout << "seed: " << seed << std::endl;
       perlin.reseed(seed);
-      generate(v, cubes, vecX, vecY, vecZ, perlin);
+      generate(cubes, vecX, vecY, vecZ, perlin, cube_size);
     }
 
     BeginDrawing();
@@ -138,8 +140,10 @@ int main()
 
 #pragma omp parallel for schedule(auto) num_threads(1)
       for (size_t i = 0; i < cubes.size(); i++) {
+        cube& current_cube = cubes[i];
+
         // Draw only cubes if display is true
-        if (!cubes[i].display) {
+        if (!current_cube.display) {
           skip_by_display++;
           continue;
         }
@@ -149,11 +153,9 @@ int main()
         //  continue;
         //}
 
-        /*
-        int x = i % vecX;
-        int y = (i / vecX) % vecY;
-        int z = i / (vecX * vecY);
-        */
+        // int x = i % vecX;
+        // int y = (i / vecX) % vecY;
+        // int z = i / (vecX * vecY);
 
         // If cube has all 6 neighbors is displayed, skip it
         const cube& c1 = cubes[std::max(0, static_cast<int32_t>(i) - 1)];
@@ -171,8 +173,9 @@ int main()
         }
 
         // If cube is not visible on screen, skip it
-        const Vector3 cube_center = {
-            cubes[i].x + cubes[i].size_x / 2, cubes[i].y + cubes[i].size_y / 2, cubes[i].z + cubes[i].size_z / 2};
+        const Vector3 cube_center = {current_cube.x + current_cube.size_x / 2,
+                                     current_cube.y + current_cube.size_y / 2,
+                                     current_cube.z + current_cube.size_z / 2};
 
         const Vector2 cube_screen_pos = camera.GetWorldToScreen(cube_center);
 
@@ -184,12 +187,12 @@ int main()
         }
 
 #pragma omp critical
-        DrawCubeV(raylib::Vector3(cubes[i].x, cubes[i].y, cubes[i].z),
-                  raylib::Vector3(cubes[i].size_x, cubes[i].size_y, cubes[i].size_z),
-                  cubes[i].color);
+        DrawCubeV(raylib::Vector3(current_cube.x, current_cube.y, current_cube.z),
+                  raylib::Vector3(current_cube.size_x, current_cube.size_y, current_cube.size_z),
+                  current_cube.color);
 #pragma omp critical
-        DrawCubeWiresV(raylib::Vector3(cubes[i].x, cubes[i].y, cubes[i].z),
-                       raylib::Vector3(cubes[i].size_x, cubes[i].size_y, cubes[i].size_z),
+        DrawCubeWiresV(raylib::Vector3(current_cube.x, current_cube.y, current_cube.z),
+                       raylib::Vector3(current_cube.size_x, current_cube.size_y, current_cube.size_z),
                        raylib::Color::Black());
       }
 
