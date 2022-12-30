@@ -33,7 +33,7 @@ void generate(
     for (int y = 0; y < height; y++) {
       for (int z = 0; z < depth; z++) {
         const uint8_t value_int =
-            static_cast<uint8_t>(perlin.octave3D_01(x / 128.0, y / 128.0, z / 128.0, 16, 0.1) * 255.0);
+            static_cast<uint8_t>(perlin.octave3D_01(x / 256.0, y / 256.0, z / 256.0, 16, 0.1) * 255.0);
         v[x * height * depth + y * depth + z] = value_int;
       }
     }
@@ -82,12 +82,13 @@ void generate(
 
 int main()
 {
-  const int screen_width = 1920;
-  const int screenHeight = 1080;
+  const int screen_width = 2560;
+  const int screen_height = 1440;
+  const int target_fps = 30;
 
   const float cube_size = 1.0f;
 
-  raylib::Window window(screen_width, screenHeight, "Minecube");
+  raylib::Window window(screen_width, screen_height, "Minecube");
 
   siv::PerlinNoise::seed_type seed = 2647393077u;
   std::cout << "seed: " << seed << std::endl;
@@ -112,7 +113,7 @@ int main()
 
   camera.SetMode(CAMERA_ORBITAL);
 
-  SetTargetFPS(30);
+  SetTargetFPS(target_fps);
 
   while (!window.ShouldClose()) {
     camera.Update();
@@ -129,16 +130,59 @@ int main()
       window.ClearBackground(RAYWHITE);
 
       camera.BeginMode();
+
+      // Statistics
+      size_t skip_by_display = 0;
+      size_t skip_by_all_neighbors = 0;
+      size_t skip_by_out_of_screen = 0;
+
 #pragma omp parallel for schedule(auto) num_threads(1)
       for (size_t i = 0; i < cubes.size(); i++) {
+        // Draw only cubes if display is true
         if (!cubes[i].display) {
+          skip_by_display++;
           continue;
         }
 
         // Draw only surfaces
-        if (cubes[i + 1].display) {
+        // if (cubes[i + 1].display) {
+        //  continue;
+        //}
+
+        /*
+        int x = i % vecX;
+        int y = (i / vecX) % vecY;
+        int z = i / (vecX * vecY);
+        */
+
+        // If cube has all 6 neighbors is displayed, skip it
+        const cube& c1 = cubes[std::max(0, static_cast<int32_t>(i) - 1)];
+        const cube& c2 = cubes[std::min(static_cast<int32_t>(cubes.size()) - 1, static_cast<int32_t>(i) + 1)];
+        const cube& c3 = cubes[std::max(0, static_cast<int32_t>(i) - static_cast<int32_t>(vecX))];
+        const cube& c4 = cubes[std::min(static_cast<int32_t>(cubes.size()) - 1,
+                                        static_cast<int32_t>(i) + static_cast<int32_t>(vecX))];
+        const cube& c5 = cubes[std::max(0, static_cast<int32_t>(i) - static_cast<int32_t>(vecX * vecY))];
+        const cube& c6 = cubes[std::min(static_cast<int32_t>(cubes.size()) - 1,
+                                        static_cast<int32_t>(i) + static_cast<int32_t>(vecX * vecY))];
+
+        if (c1.display && c2.display && c3.display && c4.display && c5.display && c6.display) {
+          skip_by_all_neighbors++;
           continue;
         }
+
+        // If cube is not visible on screen, skip it
+        const Vector3 cube_center = {
+            cubes[i].x + cubes[i].size_x / 2, cubes[i].y + cubes[i].size_y / 2, cubes[i].z + cubes[i].size_z / 2};
+
+        const Vector2 cube_screen_pos = camera.GetWorldToScreen(cube_center);
+
+        if (cube_screen_pos.x < 0 || cube_screen_pos.x > GetScreenWidth() || cube_screen_pos.y < 0
+            || cube_screen_pos.y > GetScreenHeight())
+        {
+          skip_by_out_of_screen++;
+          continue;
+        }
+
 #pragma omp critical
         DrawCubeV(raylib::Vector3(cubes[i].x, cubes[i].y, cubes[i].z),
                   raylib::Vector3(cubes[i].size_x, cubes[i].size_y, cubes[i].size_z),
@@ -148,6 +192,23 @@ int main()
                        raylib::Vector3(cubes[i].size_x, cubes[i].size_y, cubes[i].size_z),
                        raylib::Color::Black());
       }
+
+      std::cout << "skip_by_display: " << skip_by_display << std::endl;
+      std::cout << "skip_by_all_neighbors: " << skip_by_all_neighbors << std::endl;
+      std::cout << "skip_by_out_of_screen: " << skip_by_out_of_screen << std::endl;
+      std::cout << "total skipped: " << skip_by_display + skip_by_all_neighbors + skip_by_out_of_screen << std::endl;
+      std::cout << "total cubes: " << cubes.size() << std::endl;
+      std::cout << "total cubes displayed: "
+                << cubes.size() - skip_by_display - skip_by_all_neighbors - skip_by_out_of_screen;
+      std::cout << " ("
+                << static_cast<float>(cubes.size() - skip_by_display - skip_by_all_neighbors - skip_by_out_of_screen)
+              / static_cast<float>(cubes.size()) * 100.0f
+                << "%)" << std::endl;
+      std::cout << std::endl;
+
+      skip_by_display = 0;
+      skip_by_all_neighbors = 0;
+      skip_by_out_of_screen = 0;
 
       camera.EndMode();
 
