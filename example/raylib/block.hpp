@@ -17,28 +17,15 @@ class block
 {
 
 public:
-    
-
-    block(float x, float y, float z, float size_x, float size_y, float size_z, Color color, bool is_visible)
-        : x(x), y(y), z(z), size_x(size_x), size_y(size_y), size_z(size_z), color(color), display(is_visible)
+    explicit block(float x, float y, float z, float size_x, float size_y, float size_z, Color color, bool is_visible)
+        : x(x), y(y), z(z), size_x(size_x), size_y(size_y), size_z(size_z), color(color), is_visible(is_visible)
     {
     }
 
     ~block()
     {
-        
     }
 
-    //Vector3 position = {0.0f, 0.0f, 0.0f};
-    //Vector3 size = {1.0f, 1.0f, 1.0f};
-    /*
-    float & x = position.x;
-    float & y = position.y;
-    float & z = position.z;
-    float & size_x = size.x;
-    float & size_y = size.y;
-    float & size_z = size.z;
-    */
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
@@ -47,11 +34,11 @@ public:
     float size_z = 1.0f;
 
     Color color = raylib::Color::Gray();
-    bool display = true;
-
-    /*
-    Color color = raylib::Color::Gray();
-    uint64_t block_type = 0;
     bool is_visible = true;
-    */
+
+    size_t block_type = 0;
+
+    size_t block_x = 0;
+    size_t block_y = 0;
+    size_t block_z = 0;
 };
