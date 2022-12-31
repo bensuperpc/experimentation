@@ -17,9 +17,9 @@ namespace experimentation
 
 void list_all_files(std::vector<std::string>& list, std::string_view path = ".")
 {
-  for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
-    list.emplace_back(entry.path().string());
-  }
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
+        list.emplace_back(entry.path().string());
+    }
 }
 
 }  // namespace experimentation

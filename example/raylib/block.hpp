@@ -15,30 +15,49 @@
 
 class block
 {
+    public:
+        explicit block(
+            float x, float y, float z, float size_x, float size_y, float size_z, Color color, bool is_visible)
+            : x(x)
+            , y(y)
+            , z(z)
+            , size_x(size_x)
+            , size_y(size_y)
+            , size_z(size_z)
+            , color(color)
+            , is_visible(is_visible)
+        {
+        }
 
-public:
-    explicit block(float x, float y, float z, float size_x, float size_y, float size_z, Color color, bool is_visible)
-        : x(x), y(y), z(z), size_x(size_x), size_y(size_y), size_z(size_z), color(color), is_visible(is_visible)
-    {
-    }
+        ~block() {}
 
-    ~block()
-    {
-    }
+        BoundingBox get_bounding_box() const
+        {
+            Vector3 cube_begin = {x - size_x / 2, y - size_y / 2, z - size_z / 2};
+            Vector3 cube_end = {x + size_x / 2, y + size_y / 2, z + size_z / 2};
+            BoundingBox box = {cube_begin, cube_end};
+            return box;
+        }
 
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-    float size_x = 1.0f;
-    float size_y = 1.0f;
-    float size_z = 1.0f;
+        Vector3 get_block_center() const { return {x + size_x / 2, y + size_y / 2, z + size_z / 2}; }
 
-    Color color = raylib::Color::Gray();
-    bool is_visible = true;
+        void draw() const { DrawCubeV({x, y, z}, {size_x, size_y, size_z}, color); }
 
-    size_t block_type = 0;
+        void draw_box() const { DrawCubeWiresV({x, y, z}, {size_x, size_y, size_z}, raylib::Color::Black()); }
 
-    size_t block_x = 0;
-    size_t block_y = 0;
-    size_t block_z = 0;
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        float size_x = 1.0f;
+        float size_y = 1.0f;
+        float size_z = 1.0f;
+
+        Color color = raylib::Color::Gray();
+        bool is_visible = true;
+
+        size_t block_type = 0;
+
+        size_t block_x = 0;
+        size_t block_y = 0;
+        size_t block_z = 0;
 };

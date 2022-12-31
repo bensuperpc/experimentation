@@ -17,25 +17,25 @@ namespace experimentation
 
 bool is_palindrome_for(std::string_view str)
 {
-  const auto size = str.size();
-  for (std::size_t i = 0; i < size / 2; ++i) {
-    if (str[i] != str[size - i - 1]) {
-      return false;
+    const auto size = str.size();
+    for (std::size_t i = 0; i < size / 2; ++i) {
+        if (str[i] != str[size - i - 1]) {
+            return false;
+        }
     }
-  }
-  return true;
+    return true;
 }
 
 bool is_palindrome_std_v1(std::string_view str)
 {
-  std::string copy_str = std::string {str};
-  std::reverse(copy_str.begin(), copy_str.end());
-  return copy_str == str;
+    std::string copy_str = std::string {str};
+    std::reverse(copy_str.begin(), copy_str.end());
+    return copy_str == str;
 }
 
 bool is_palindrome_std_v2(std::string_view str)
 {
-  return std::equal(str.begin(), str.begin() + str.size() / 2, str.rbegin());
+    return std::equal(str.begin(), str.begin() + str.size() / 2, str.rbegin());
 }
 
 }  // namespace experimentation

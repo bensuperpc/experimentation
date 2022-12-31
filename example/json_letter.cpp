@@ -7,21 +7,21 @@
 
 auto main() -> int
 {
-  std::ifstream file("test.json");
+    std::ifstream file("test.json");
 
-  if (!file.is_open()) {
-    std::cout << "File not found" << std::endl;
-    return 1;
-  }
+    if (!file.is_open()) {
+        std::cout << "File not found" << std::endl;
+        return 1;
+    }
 
-  nlohmann::json j = nlohmann::json::parse(file);
-  // std::string email = j.at(0).at("email");
+    nlohmann::json j = nlohmann::json::parse(file);
+    // std::string email = j.at(0).at("email");
 
-  for (const auto& item : j.items()) {
-    // std::cout << item.key() << " : " << item.value() << std::endl;
-    std::string email = item.value().at("email");
-    std::cout << "Email: " << email << std::endl;
-  }
+    for (const auto& item : j.items()) {
+        // std::cout << item.key() << " : " << item.value() << std::endl;
+        std::string email = item.value().at("email");
+        std::cout << "Email: " << email << std::endl;
+    }
 
-  return 0;
+    return 0;
 }
