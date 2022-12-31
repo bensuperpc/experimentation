@@ -16,6 +16,69 @@
 #include "raylib.h"
 #include "raymath.h"
 
+void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const int vecZ, const float cube_size)
+{
+#pragma omp parallel for schedule(auto)
+    for (size_t i = 0; i < blocks.size(); i++) {
+        block& current_cube = blocks[i];
+
+        // If block has all 6 neighbors is displayed, skip it
+        size_t neighbors = 0;
+
+        size_t c1i = i - 1;
+        if (c1i >= 0 && c1i < blocks.size()) {
+            if (!blocks[c1i].block_type == block_type::air) {
+                neighbors++;
+            }
+        }
+
+        size_t c2i = i + 1;
+        if (c2i >= 0 && c2i < blocks.size()) {
+            if (!blocks[c2i].block_type == block_type::air) {
+                neighbors++;
+            }
+        }
+
+        size_t c3i = i - vecX;
+        if (c3i >= 0 && c3i < blocks.size()) {
+            if (!blocks[c3i].block_type == block_type::air) {
+                neighbors++;
+            }
+        }
+
+        size_t c4i = i + vecX;
+        if (c4i >= 0 && c4i < blocks.size()) {
+            if (!blocks[c4i].block_type == block_type::air) {
+                neighbors++;
+            }
+        }
+
+        size_t c5i = i - vecX * vecY;
+        if (c5i >= 0 && c5i < blocks.size()) {
+            if (!blocks[c5i].block_type == block_type::air) {
+                neighbors++;
+            }
+        }
+
+        size_t c6i = i + vecX * vecY;
+        if (c6i >= 0 && c6i < blocks.size()) {
+            if (!blocks[c6i].block_type == block_type::air) {
+                neighbors++;
+            }
+        }
+
+        if (neighbors == 6) {
+            // check if block is on external surface of the world
+            if (current_cube.x == 0 || current_cube.x == vecX * cube_size || current_cube.y == 0
+                || current_cube.y == vecY * cube_size || current_cube.z == 0 || current_cube.z == vecZ * cube_size)
+            {
+            } else {
+                current_cube.is_visible = false;
+            }
+        }
+    }
+}
+
 void generate(std::vector<block>& blocks,
               const int width,
               const int height,
@@ -23,9 +86,9 @@ void generate(std::vector<block>& blocks,
               siv::PerlinNoise& perlin,
               const float cube_size)
 {
+    // Generate noise 3D noise map (0-255)
     std::vector<unsigned char> v(width * height * depth, 0);
 
-    // Generate noise
 #pragma omp parallel for collapse(3) schedule(auto)
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
@@ -46,6 +109,7 @@ void generate(std::vector<block>& blocks,
 #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
+            // Only generate blocks that are visible and 3D noise to 2D + height
             size_t vec_index = y * width + x;
             unsigned char noise_value = v[vec_index] / 4;
             for (int z = 0; z < depth; z++) {
@@ -62,18 +126,19 @@ void generate(std::vector<block>& blocks,
                 current_block.block_y = y;
                 current_block.block_z = z;
 
-                if (z < noise_value) {
-                    current_block.is_visible = true;
-                } else {
+                // If the noise value is greater than the current block, make it air
+                if (z > noise_value) {
                     current_block.is_visible = false;
+                    current_block.block_type = block_type::air;
+                    continue;
                 }
+
+                current_block.is_visible = true;
+                current_block.block_type = block_type::stone;
             }
         }
     }
-
-    auto visible = [](const block& c) { return c.is_visible; };
-    auto count = std::count_if(blocks.begin(), blocks.end(), visible);
-    std::cout << "Only " << count << " blocks are visible out of " << blocks.size() << std::endl;
+    optimize(blocks, width, height, depth, cube_size);
 }
 
 int main()
@@ -84,11 +149,16 @@ int main()
     const int target_fps = 30;
 
     bool show_grid = true;
-    bool optimisation = true;
+    bool show_plain_block = true;
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     raylib::Window window(screen_width, screen_height, "Minecube");
     SetTargetFPS(target_fps);
+
+    raylib::Image img = GenImageChecked(256, 256, 32, 32, GREEN, RED);
+    raylib::Texture2D textureGrid = LoadTextureFromImage(img);
+    SetTextureFilter(textureGrid, TEXTURE_FILTER_ANISOTROPIC_16X);
+    SetTextureWrap(textureGrid, TEXTURE_WRAP_CLAMP);
 
     const float cube_size = 2.0f;
 
@@ -102,8 +172,14 @@ int main()
     size_t vecZ = 96;
 
     size_t vec_size = vecX * vecY * vecZ;
-    std::vector<block> blocks(vec_size, block {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Color {0, 0, 0, 0}, false});
+    std::vector<block> blocks(vec_size,
+                              block {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Color {0, 0, 0, 0}, block_type::air, false});
+
     generate(blocks, vecX, vecY, vecZ, perlin, cube_size);
+
+    for (size_t i = 0; i < vec_size; i++) {
+        blocks[i].texture = &textureGrid;
+    }
 
     raylib::Camera camera(
         raylib::Vector3(static_cast<float>(vecX * cube_size / 4),
@@ -123,7 +199,7 @@ int main()
     RayCollision closest_collision = {0};
     block* closest_block = nullptr;
 
-    Vector2 screen_middle = {static_cast<float>(screen_width / 2), static_cast<float>(screen_height / 2)};
+    raylib::Vector2 screen_middle = {static_cast<float>(screen_width / 2), static_cast<float>(screen_height / 2)};
 
     while (!window.ShouldClose()) {
         camera.Update();
@@ -136,7 +212,7 @@ int main()
         }
         collisions.clear();
 
-        Vector2 mouse_pos = GetMousePosition();
+        raylib::Vector2 mouse_pos = GetMousePosition();
         ray = GetMouseRay(screen_middle, camera);
 
         if (IsKeyPressed(KEY_R)) {
@@ -150,8 +226,8 @@ int main()
             show_grid = !show_grid;
         }
 
-        if (IsKeyPressed(KEY_O)) {
-            optimisation = !optimisation;
+        if (IsKeyPressed(KEY_H)) {
+            show_plain_block = !show_plain_block;
         }
 
         if (IsKeyPressed(KEY_F5)) {
@@ -173,6 +249,7 @@ int main()
         }
         */
 
+// TODO: optimize to check only the blocks around the player
 #pragma omp parallel for schedule(auto)
         for (size_t i = 0; i < blocks.size(); i++) {
             block& current_cube = blocks[i];
@@ -195,8 +272,6 @@ int main()
             closest_collision = collisions[0].second;
             closest_block = collisions[0].first;
             closest_block->color = raylib::Color::Red();
-            std::cout << "Hit block: " << closest_collision.hit << " at distance: " << closest_collision.distance
-                      << std::endl;
         }
 
         // Statistics
@@ -226,83 +301,23 @@ int main()
                 //  continue;
                 //}
 
-                if (optimisation) {
-                    // If block has all 6 neighbors is displayed, skip it
-                    size_t neighbors = 0;
-
-                    size_t c1i = i - 1;
-                    if (c1i >= 0 && c1i < blocks.size()) {
-                        if (blocks[c1i].is_visible) {
-                            neighbors++;
-                        }
-                    }
-
-                    size_t c2i = i + 1;
-                    if (c2i >= 0 && c2i < blocks.size()) {
-                        if (blocks[c2i].is_visible) {
-                            neighbors++;
-                        }
-                    }
-
-                    size_t c3i = i - vecX;
-                    if (c3i >= 0 && c3i < blocks.size()) {
-                        if (blocks[c3i].is_visible) {
-                            neighbors++;
-                        }
-                    }
-
-                    size_t c4i = i + vecX;
-                    if (c4i >= 0 && c4i < blocks.size()) {
-                        if (blocks[c4i].is_visible) {
-                            neighbors++;
-                        }
-                    }
-
-                    size_t c5i = i - vecX * vecY;
-                    if (c5i >= 0 && c5i < blocks.size()) {
-                        if (blocks[c5i].is_visible) {
-                            neighbors++;
-                        }
-                    }
-
-                    size_t c6i = i + vecX * vecY;
-                    if (c6i >= 0 && c6i < blocks.size()) {
-                        if (blocks[c6i].is_visible) {
-                            neighbors++;
-                        }
-                    }
-
-                    if (neighbors == 6) {
-                        // check if block is on external surface of the world
-                        /*
-                        if (current_cube.x == 0 || current_cube.x == vecX * cube_size || current_cube.y == 0
-                            || current_cube.y == vecY * cube_size || current_cube.z == 0 || current_cube.z == vecZ *
-                        cube_size)
-                        {
-                        } else {
-                          skip_by_all_neighbors++;
-                          continue;
-                        }
-                        */
-                        skip_by_all_neighbors++;
-                        continue;
-                    }
-                }
-
                 // If block is not visible on screen, skip it
-                const Vector2 cube_screen_pos = camera.GetWorldToScreen(current_cube.get_block_center());
-
-                if (cube_screen_pos.x < 0 || cube_screen_pos.x > GetScreenWidth() || cube_screen_pos.y < 0
-                    || cube_screen_pos.y > GetScreenHeight())
+                const raylib::Vector2 cube_screen_pos = camera.GetWorldToScreen(current_cube.get_center());
+                int margin = 0;
+                if (cube_screen_pos.x < -margin || cube_screen_pos.x > GetScreenWidth() + margin
+                    || cube_screen_pos.y < -margin || cube_screen_pos.y > GetScreenHeight() + margin)
                 {
                     skip_by_out_of_screen++;
                     continue;
                 }
-
+                if (show_plain_block) {
 #pragma omp critical
-                current_cube.draw();
+                    current_cube.draw();
+                }
+                if (show_grid) {
 #pragma omp critical
-                current_cube.draw_box();
+                    current_cube.draw_box();
+                }
             }
             if (show_grid) {
                 DrawGrid(256, 1.0f);

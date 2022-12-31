@@ -8,7 +8,7 @@ if (NOT OpenCV_FOUND)
     FetchContent_Declare(
         opencv
         GIT_REPOSITORY https://github.com/opencv/opencv.git
-        GIT_TAG        4.6.0
+        GIT_TAG        4.7.0
     )
     FetchContent_MakeAvailable(opencv)
     include_directories(${OpenCV_INCLUDE_DIRS})
