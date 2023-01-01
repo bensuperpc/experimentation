@@ -28,12 +28,25 @@ size_t constexpr wood = 6;
 size_t constexpr leaves = 7;
 }  // namespace block_type
 
+struct Vector3i
+{
+    int x;
+    int y;
+    int z;
+};
+
+struct Vector2i
+{
+    int x;
+    int y;
+};
+
 class block
 {
     public:
-        explicit block(float x,
-                       float y,
-                       float z,
+        explicit block(int x,
+                       int y,
+                       int z,
                        float size_x,
                        float size_y,
                        float size_z,
@@ -56,36 +69,53 @@ class block
 
         BoundingBox get_bounding_box() const
         {
-            raylib::Vector3 cube_begin = {x - size_x / 2, y - size_y / 2, z - size_z / 2};
-            raylib::Vector3 cube_end = {x + size_x / 2, y + size_y / 2, z + size_z / 2};
+            raylib::Vector3 cube_begin = {x * size_x - size_x / 2, y * size_y - size_y / 2, z * size_z - size_z / 2};
+            raylib::Vector3 cube_end = {x * size_x + size_x / 2, y * size_y + size_y / 2, z * size_z + size_z / 2};
             BoundingBox box = {cube_begin, cube_end};
             return box;
         }
 
-        void draw() const { DrawCubeV({x, y, z}, {size_x, size_y, size_z}, color); }
-        void draw_texture() const { DrawCubeTexture(*texture, {x, y, z}, size_x, size_y, size_z, raylib::Color::White()); }
+        void draw() const
+        {
+            DrawCubeV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, color);
+        }
 
-        void draw_box() const { DrawCubeWiresV({x, y, z}, {size_x, size_y, size_z}, raylib::Color::Black()); }
+        void draw_texture() const
+        {
+            DrawCubeTexture(*texture, raylib::Vector3(x * size_x, y * size_y, z * size_z), size_x, size_y, size_z, raylib::Color::White());
+        }
 
-        raylib::Vector3 get_position() const { return {x, y, z}; }
+        void draw_wireframe() const
+        {
+            DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
+        }
+
+        void draw_box() const
+        {
+            DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
+        }
+
         raylib::Vector3 get_size() const { return {size_x, size_y, size_z}; }
-        raylib::Vector3 get_center() const { return {x + size_x / 2, y + size_y / 2, z + size_z / 2}; }
 
-        float x = 0.0f;
-        float y = 0.0f;
-        float z = 0.0f;
-        float size_x = 1.0f;
-        float size_y = 1.0f;
-        float size_z = 1.0f;
+        raylib::Vector3 get_center() const { return raylib::Vector3(x * size_x, y * size_y, z * size_z); }
+
+        raylib::Vector3 get_real_position() const { return {x * size_x, y * size_y, z * size_z}; }
+
+        Vector3i get_position() const { return {x, y, z}; }
+
+        // Block coordinates
+        int x = 0;
+        int y = 0;
+        int z = 0;
+
+        float size_x = 2.0f;
+        float size_y = 2.0f;
+        float size_z = 2.0f;
 
         Color color = raylib::Color::Gray();
         bool is_visible = true;
 
         size_t block_type = 0;
-
-        size_t block_x = 0;
-        size_t block_y = 0;
-        size_t block_z = 0;
 
         raylib::Texture2D* texture = nullptr;
 };
