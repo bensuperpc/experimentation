@@ -18,55 +18,67 @@
 
 // Cube lib
 #include "block.hpp"
-// #include "world.hpp"
+#include "world.hpp"
 
 void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const int vecZ, const float cube_size)
 {
-#pragma omp parallel for schedule(auto)
+    // #pragma omp parallel for schedule(auto)
     for (size_t i = 0; i < blocks.size(); i++) {
         block& current_cube = blocks[i];
+
+        /*
+        int x = i % vecX;
+        int y = (i / vecX) % vecY;
+        int z = (i / (vecX * vecY)) % vecZ;
+        */
 
         // If block has all 6 neighbors is displayed, skip it
         size_t neighbors = 0;
 
-        size_t c1i = i - 1;
-        if (c1i >= 0 && c1i < blocks.size()) {
-            if (!blocks[c1i].block_type == block_type::air) {
+        // x-1
+        size_t i1 = i - 1;
+        if (i1 >= 0 && i1 < blocks.size()) {
+            if (blocks[i1].block_type != block_type::air) {
                 neighbors++;
             }
         }
 
-        size_t c2i = i + 1;
-        if (c2i >= 0 && c2i < blocks.size()) {
-            if (!blocks[c2i].block_type == block_type::air) {
+        // x+1
+        size_t i2 = i + 1;
+        if (i2 >= 0 && i2 < blocks.size()) {
+            if (blocks[i2].block_type != block_type::air) {
                 neighbors++;
             }
         }
 
-        size_t c3i = i - vecX;
-        if (c3i >= 0 && c3i < blocks.size()) {
-            if (!blocks[c3i].block_type == block_type::air) {
+        // y-1
+        size_t i3 = i - vecX;
+        if (i3 >= 0 && i3 < blocks.size()) {
+            if (blocks[i3].block_type != block_type::air) {
                 neighbors++;
             }
         }
 
-        size_t c4i = i + vecX;
-        if (c4i >= 0 && c4i < blocks.size()) {
-            if (!blocks[c4i].block_type == block_type::air) {
+        // y+1
+        size_t i4 = i + vecX;
+        if (i4 >= 0 && i4 < blocks.size()) {
+            if (blocks[i4].block_type != block_type::air) {
                 neighbors++;
             }
         }
 
-        size_t c5i = i - vecX * vecY;
-        if (c5i >= 0 && c5i < blocks.size()) {
-            if (!blocks[c5i].block_type == block_type::air) {
+        // z-1
+        size_t i5 = i - vecX * vecY;
+        if (i5 >= 0 && i5 < blocks.size()) {
+            if (blocks[i5].block_type != block_type::air) {
                 neighbors++;
             }
         }
 
-        size_t c6i = i + vecX * vecY;
-        if (c6i >= 0 && c6i < blocks.size()) {
-            if (!blocks[c6i].block_type == block_type::air) {
+        // z+1
+        size_t i6 = i + vecX * vecY;
+        if (i6 >= 0 && i6 < blocks.size()) {
+            if (blocks[i6].block_type != block_type::air) {
                 neighbors++;
             }
         }
@@ -75,6 +87,25 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
             // If block has 6 neighbors with no air is not displayed
             case 6:
                 current_cube.is_visible = false;
+                break;
+            // If block has 5 neighbors with no air and is on one edge of the world is not displayed
+            case 5:
+                if (current_cube.x == 0 || current_cube.x == vecX - 1 || current_cube.y == 0 || current_cube.y == vecY - 1 ||
+                    current_cube.z == 0 || current_cube.z == vecZ - 1) {
+                    current_cube.is_visible = false;
+                }
+                break;
+            // If block has 4 neighbors with no air and is on two edge of the world is not displayed 
+            case 4:
+                /*
+                if ((current_cube.x == 0 || current_cube.x == vecX - 1) && (current_cube.y == 0 || current_cube.y == vecY - 1)) {
+                    current_cube.is_visible = false;
+                } else if ((current_cube.x == 0 || current_cube.x == vecX - 1) && (current_cube.z == 0 || current_cube.z == vecZ - 1)) {
+                    current_cube.is_visible = false;
+                } else if ((current_cube.y == 0 || current_cube.y == vecY - 1) && (current_cube.z == 0 || current_cube.z == vecZ - 1)) {
+                    current_cube.is_visible = false;
+                }
+                */
                 break;
             default:
                 continue;
@@ -93,7 +124,7 @@ void generate(std::vector<block>& blocks,
     // Generate noise 2D noise map (0-255)
     std::vector<unsigned char> v(vecX * vecY, 0);
 
-#pragma omp parallel for collapse(2) schedule(auto)
+    // #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < vecX; x++) {
         for (int y = 0; y < vecY; y++) {
             const uint8_t value_int = static_cast<uint8_t>(perlin.octave2D_01(x / 256.0, y / 256.0, 16, 0.2) * 255.0);
@@ -106,15 +137,15 @@ void generate(std::vector<block>& blocks,
     std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
     std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
 
-// Generate blocks
-#pragma omp parallel for collapse(2) schedule(auto)
+    // Generate blocks
+    // #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < vecX; x++) {
         for (int y = 0; y < vecY; y++) {
             size_t vec_index = x * vecX + y;
             // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
             unsigned char noise_value = v[vec_index] / 4;
             for (int z = 0; z < vecZ; z++) {
-                block& current_block = blocks[x * vecX * vecZ + y * vecY + z];
+                block& current_block = blocks[y * vecX * vecZ + z * vecY + x];
 
                 current_block.x = x;
                 current_block.y = z;
@@ -143,6 +174,9 @@ void generate(std::vector<block>& blocks,
 int main()
 {
     std::ios_base::sync_with_stdio(false);
+
+    world current_world;
+
     const int screen_width = 1920;
     const int screen_height = 1080;
     const int target_fps = 30;
@@ -166,9 +200,9 @@ int main()
 
     siv::PerlinNoise perlin {seed};
 
-    size_t vecX = 96;
-    size_t vecY = 96;
-    size_t vecZ = 96;
+    size_t vecX = 64;
+    size_t vecY = 64;
+    size_t vecZ = 64;
 
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks(vec_size, block {0, 0, 0, 0.0, 0.0, 0.0, Color {0, 0, 0, 0}, block_type::air, false});
@@ -180,8 +214,9 @@ int main()
     }
 
     raylib::Camera camera(
-        raylib::Vector3(
-            static_cast<float>(vecX * cube_size / 4), (vecX / 2) * cube_size, static_cast<float>(vecX * cube_size / 4)),
+        raylib::Vector3(static_cast<float>(vecX * cube_size / 4),
+                        (vecX / 2) * cube_size - 40.0,
+                        static_cast<float>(vecX * cube_size / 4)),
         raylib::Vector3(static_cast<float>(vecX * cube_size / 2), 0.0f, static_cast<float>(vecX * cube_size / 2)),
         raylib::Vector3(0.0f, 1.0f, 0.0f),
         60.0f,
@@ -198,10 +233,12 @@ int main()
 
     // Block info
     Vector3i block_info_pos = {0, 0, 0};
+    size_t block_info_index = 0;
 
     while (!window.ShouldClose()) {
         // If window is not focused or minimized, don't update to save resources
-        if (!IsWindowFocused() || IsWindowMinimized()) {
+        // !IsWindowFocused()
+        if (IsWindowMinimized()) {
             continue;
         }
 
@@ -284,8 +321,10 @@ int main()
                       << std::endl;
                       */
             block_info_pos = closest_block->get_position();
+            block_info_index = closest_block->x + closest_block->y * vecX + closest_block->z * vecX * vecY;
         } else {
             block_info_pos = {0, 0, 0};
+            block_info_index = 0;
         }
 
         // Statistics
@@ -370,6 +409,7 @@ int main()
             std::string block_info = "XYZ: " + std::to_string(block_info_pos.x) + ", "
                 + std::to_string(block_info_pos.y) + ", " + std::to_string(block_info_pos.z);
             DrawText(block_info.c_str(), 10, 30, 20, raylib::Color::Black());
+            DrawText(("Index: " + std::to_string(block_info_index)).c_str(), 10, 50, 20, raylib::Color::Black());
 
             // Draw crosshair in the middle of the screen
             DrawLine(

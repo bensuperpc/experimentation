@@ -1,3 +1,6 @@
+#ifndef CUBE_BLOCK_HPP
+#define CUBE_BLOCK_HPP
+
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
@@ -119,3 +122,5 @@ class block
 
         raylib::Texture2D* texture = nullptr;
 };
+
+#endif  // CUBE_BLOCK_HPP

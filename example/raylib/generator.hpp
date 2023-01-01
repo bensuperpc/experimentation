@@ -1,3 +1,6 @@
+#ifndef CUBE_GENERATOR_HPP
+#define CUBE_GENERATOR_HPP
+
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
@@ -22,16 +25,31 @@
 class generator
 {
     public:
-        explicit generator(int world_size_x, int world_size_y, int world_size_z)
-            : world_size_x(world_size_x)
-            , world_size_y(world_size_y)
-            , world_size_z(world_size_z)
+        explicit generator(uint32_t _seed)
+            : seed(_seed)
         {
+            perlin.reseed(seed);
         }
+
+        generator() = default;
 
         ~generator() {}
 
-        int world_size_x = 128;
-        int world_size_y = 128;
-        int world_size_z = 128;
+        void reseed(uint32_t seed)
+        {
+            this->seed = seed;
+            perlin.reseed(seed);
+        }
+
+        uint32_t get_seed() const
+        {
+            return seed;
+        }
+
+    private:
+        // default seed
+        siv::PerlinNoise::seed_type seed = 2647393077u;
+        siv::PerlinNoise perlin {seed};
 };
+
+#endif  // CUBE_GENERATOR_HPP

@@ -1,5 +1,5 @@
-#ifndef CUBE_CHUNK_HPP
-#define CUBE_CHUNK_HPP
+#ifndef CUBE_WORLD_HPP
+#define CUBE_WORLD_HPP
 
 #include <algorithm>
 #include <chrono>
@@ -21,20 +21,21 @@
 
 // Cube lib
 #include "block.hpp"
+#include "chunk.hpp"
+#include "generator.hpp"
 
-class chunk
+class world
 {
     public:
-        explicit chunk()
-        {
-        }
+        explicit world() {}
 
-        ~chunk() {}
+        ~world() {}
 
-    static constexpr int chunk_size_x = 16;
-    static constexpr int chunk_size_y = 16; // 128 ?
-    static constexpr int chunk_size_z = 16;
+        void generate() {}
 
+        generator gen = generator();
+
+        std::vector<chunk> chunks;
 };
 
-#endif  // CUBE_CHUNK_HPP
+#endif  // CUBE_WORLD_HPP
