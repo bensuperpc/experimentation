@@ -22,6 +22,8 @@
 
 void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const int vecZ)
 {
+    std::cout << "Optimizing..." << std::endl;
+
     constexpr bool debug = false;
     constexpr int debug_x = 0;
     constexpr int debug_y = 15;
@@ -205,45 +207,81 @@ void generate(std::vector<block>& blocks,
               const uint32_t size_z,
               siv::PerlinNoise& perlin,
               const float cube_size)
-{   
+{
+    constexpr bool debug = false;
+
     T end_x = static_cast<T>(begin_x + size_x);
     T end_y = static_cast<T>(begin_y + size_y);
     T end_z = static_cast<T>(begin_z + size_z);
 
+    if constexpr (debug) {
+        std::cout << "Generating:" << std::endl;
+        std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
+        std::cout << "To (xyz): " << end_x << ", " << end_y << ", " << end_z << std::endl;
+        std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
+
+        std::cout << "Generating noise..." << std::endl;
+    }
     // Generate noise 2D noise map (0-255)
     std::vector<unsigned char> v(size_x * size_y, 0);
 
-    #pragma omp parallel for collapse(2) schedule(auto)
-    for (T x = begin_x; x < end_x; x++) {
-        for (T y = begin_y; y < end_y; y++) {
-            const uint8_t value_int = static_cast<uint8_t>(perlin.octave2D_01(x / 256.0, y / 256.0, 16, 0.2) * 255.0);
-            v[y * size_y + x] = value_int;
+    // #pragma omp parallel for collapse(2) schedule(auto)
+    for (int x = 0; x < size_x; x++) {
+        for (int y = 0; y < size_y; y++) {
+            // Calculate real x and y from begin_x and begin_y
+            const int real_x = x + begin_x;
+            const int real_y = y + begin_y;
+
+            const uint8_t value_int = static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_y / 256.0, 16, 0.2) * 255.0);
+            v[std::abs(y) * size_x + std::abs(x)] = value_int;
+            if (debug) {
+                std::cout << "x: " << real_x << ", y: " << real_y << " index: " << std::abs(y) * size_y + std::abs(x)
+                          << ", value: " << static_cast<int>(value_int) << std::endl;
+            }
         }
     }
 
-    // cout max and min
-    auto minmax = std::minmax_element(v.begin(), v.end());
-    std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
-    std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
+    if constexpr (debug) {
+        // cout max and min
+        auto minmax = std::minmax_element(v.begin(), v.end());
+        std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
+        std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
+    }
 
     // Insert blocks if needed to make sure the vector is the correct size
     if (blocks.size() < size_x * size_y * size_z) {
         blocks.insert(blocks.end(), size_x * size_y * size_z - blocks.size(), block());
     }
 
+    if constexpr (debug) {
+        std::cout << "Generating blocks..." << std::endl;
+    }
     // Generate blocks
-    #pragma omp parallel for collapse(2) schedule(auto)
-    for (T x = begin_x; x < end_x; x++) {
-        for (T y = begin_y; y < size_y; y++) {
-            size_t vec_index = x * end_y + y;
-            // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
-            unsigned char noise_value = v[vec_index] / 4;
-            for (T z = begin_z; z < end_z; z++) {
-                block& current_block = blocks[y * size_x * size_z + z * size_y + x];
+    // #pragma omp parallel for collapse(2) schedule(auto)
+    for (int x = 0; x < size_x; x++) {
+        for (int y = 0; y < size_y; y++) {
+            // Calculate real x and y from begin_x and begin_y
+            const int real_x = x + begin_x;
+            const int real_y = y + begin_y;
 
-                current_block.x = x;
-                current_block.y = z;
-                current_block.z = y;
+            // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
+            unsigned char noise_value = v[y * size_x + x] / 4;
+
+            for (int z = 0; z < size_y; z++) {
+                // Calculate real z from begin_z
+                const int real_z = z + begin_z;
+
+                size_t vec_index = y * size_x * size_z + z * size_y + x;
+
+                block& current_block = blocks[vec_index];
+                if constexpr (debug) {
+                    std::cout << "x: " << real_x << ", y: " << real_y << ", z: " << real_z << " index: " << vec_index
+                              << ", noise: " << static_cast<int>(noise_value) << std::endl;
+                }
+
+                current_block.x = real_x;
+                current_block.y = real_z;
+                current_block.z = real_y;
 
                 current_block.size_x = cube_size;
                 current_block.size_y = cube_size;
@@ -301,15 +339,16 @@ int main()
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
 
-    generate(blocks, 0,0,0,  vecX, vecY, vecZ, perlin, cube_size);
+    generate(blocks, -2, -2, -2, vecX, vecY, vecZ, perlin, cube_size);
 
     for (size_t i = 0; i < vec_size; i++) {
         blocks[i].texture = &textureGrid;
     }
 
     raylib::Camera camera(
-        raylib::Vector3(
-            static_cast<float>(vecX * cube_size / 4), (vecX / 2) * cube_size, static_cast<float>(vecX * cube_size / 4)),
+        raylib::Vector3(static_cast<float>(vecX * cube_size / 4),
+                        (vecX / 2) * cube_size,
+                        static_cast<float>(vecX * cube_size / 4)),
         raylib::Vector3(static_cast<float>(vecX * cube_size / 2), 0.0f, static_cast<float>(vecX * cube_size / 2)),
         raylib::Vector3(0.0f, 1.0f, 0.0f),
         60.0f,
@@ -357,7 +396,7 @@ int main()
             decltype(seed) seed = std::random_device()();
             std::cout << "seed: " << seed << std::endl;
             perlin.reseed(seed);
-            generate(blocks, 0,0,0, vecX, vecY, vecZ, perlin, cube_size);
+            generate(blocks, -0, -0, -0, vecX, vecY, vecZ, perlin, cube_size);
         }
 
         if (IsKeyPressed(KEY_G)) {
@@ -512,10 +551,13 @@ int main()
                 + std::to_string(block_info_pos.y) + ", " + std::to_string(block_info_pos.z);
             DrawText(block_info.c_str(), 10, 30, 20, raylib::Color::Black());
             DrawText(("Index: " + std::to_string(block_info_index)).c_str(), 10, 50, 20, raylib::Color::Black());
-            DrawText(("Real XYZ: " + std::to_string(block_info_real_pos.x) + ", " + std::to_string(block_info_real_pos.y)
-                         + ", " + std::to_string(block_info_real_pos.z))
+            DrawText(("Real XYZ: " + std::to_string(block_info_real_pos.x) + ", "
+                      + std::to_string(block_info_real_pos.y) + ", " + std::to_string(block_info_real_pos.z))
                          .c_str(),
-                10, 70, 20, raylib::Color::Black());
+                     10,
+                     70,
+                     20,
+                     raylib::Color::Black());
             DrawText(
                 ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 90, 20, raylib::Color::Black());
             DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 110, 20, raylib::Color::Black());
