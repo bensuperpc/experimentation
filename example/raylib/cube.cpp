@@ -345,9 +345,9 @@ int main()
 
     siv::PerlinNoise perlin {seed};
 
-    size_t vecX = 64;
-    size_t vecY = 64;
-    size_t vecZ = 64;
+    size_t vecX = 32;
+    size_t vecY = 32;
+    size_t vecZ = 32;
 
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
