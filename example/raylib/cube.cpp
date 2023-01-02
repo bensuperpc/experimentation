@@ -29,18 +29,39 @@ void optimize(std::vector<block>& blocks,
               const uint32_t size_y,
               const uint32_t size_z)
 {
-    constexpr bool debug = false;
-    constexpr int debug_x = 61;
-    constexpr int debug_y = 12;
-    constexpr int debug_z = 2;
-
-    std::cout << "Optimizing..." << std::endl;
+    constexpr bool debug = true;
+    constexpr int debug_x = 21;
+    constexpr int debug_y = 31;
+    constexpr int debug_z = 21;
 
     const T end_x = static_cast<T>(begin_x + size_x);
     const T end_y = static_cast<T>(begin_y + size_y);
     const T end_z = static_cast<T>(begin_z + size_z);
+    /*
+    Block (xyz): 21, 31, 21 current
+    Block (xyz): 20, 31, 21 index: 64852 block_type: stone x-1
+    Adding neighbor
+    Block (xyz): 22, 31, 21 index: 64854 block_type: stone x+1
+    Adding neighbor
+    Block (xyz): 21, 30, 21 block_type: stone y-1
+    Adding neighbor
+    Block (xyz): 21, 32, 21 index: 66901 block_type: air y+1
+    Adding edge
+    Block (xyz): 21, 31, 20 index: 64789 block_type: stone z-1
+    Adding neighbor
+    Block (xyz): 21, 31, 22 index: 64917 block_type: stone z+1
+    Adding neighbor
+    Neighbors: 5
+    Edges: 1
+    */
+    if constexpr (debug) {
+        std::cout << "optimizing..." << std::endl;
+        std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
+        std::cout << "To (xyz): " << end_x << ", " << end_y << ", " << end_z << std::endl;
+        std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
+    }
 
-#pragma omp parallel for schedule(auto)
+    // #pragma omp parallel for schedule(auto)
     for (size_t i = 0; i < blocks.size(); i++) {
         block& current_cube = blocks[i];
 
@@ -51,8 +72,9 @@ void optimize(std::vector<block>& blocks,
 
         if constexpr (debug) {
             if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                std::cout << "Block: " << current_cube.x << ", " << current_cube.y << ", " << current_cube.z
+                std::cout << "Block (xyz): " << current_cube.x << ", " << current_cube.y << ", " << current_cube.z
                           << " current" << std::endl;
+                current_cube.color = raylib::Color::Blue();
             }
         }
 
@@ -69,110 +91,153 @@ void optimize(std::vector<block>& blocks,
 
         // x-1
         size_t i1 = i - 1;
-        if (current_cube.x == begin_x) {
-            edges++;
-        }
-        if (i1 < blocks.size() && current_cube.x > begin_x) {
-            if (blocks[i1].block_type != block_type::air) {
-                neighbors++;
-
-                if constexpr (debug) {
+        if (i1 < blocks.size()) {
+            if constexpr (debug) {
+                if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                    std::cout << "Block (xyz): " << blocks[i1].x << ", " << blocks[i1].y << ", " << blocks[i1].z
+                              << " index: " << i1 << " block_type: " << block_type::get_name(blocks[i1].block_type)
+                              << " x-1" << std::endl;
+                }
+            }
+            if (current_cube.x > begin_x) {
+                if (blocks[i1].block_type != block_type::air) {
+                    neighbors++;
                     if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                        std::cout << "Block: " << blocks[i1].x << ", " << blocks[i1].y << ", " << blocks[i1].z << " x-1"
-                                  << std::endl;
+                        std::cout << "Adding neighbor" << std::endl;
                     }
                 }
+            }
+        }
+        if (current_cube.x == begin_x) {
+            edges++;
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Adding edge" << std::endl;
             }
         }
 
         // x+1
         size_t i2 = i + 1;
-        if (current_cube.x == end_x - 1) {
-            edges++;
-        }
-        if (i2 < blocks.size() && current_cube.x < end_x - 1) {
-            if (blocks[i2].block_type != block_type::air) {
-                neighbors++;
-
-                if constexpr (debug) {
+        if (i2 < blocks.size()) {
+            if constexpr (debug) {
+                if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                    std::cout << "Block (xyz): " << blocks[i2].x << ", " << blocks[i2].y << ", " << blocks[i2].z
+                              << " index: " << i2 << " block_type: " << block_type::get_name(blocks[i2].block_type)
+                              << " x+1" << std::endl;
+                }
+            }
+            if (current_cube.x < end_x - 1) {
+                if (blocks[i2].block_type != block_type::air) {
+                    neighbors++;
                     if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                        std::cout << "Block: " << blocks[i2].x << ", " << blocks[i2].y << ", " << blocks[i2].z << " x+1"
-                                  << std::endl;
+                        std::cout << "Adding neighbor" << std::endl;
                     }
                 }
             }
         }
+        if (current_cube.x == end_x - 1) {
+            edges++;
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Adding edge" << std::endl;
+            }
+        }
 
         // y-1
-        size_t i3 = i - size_x;
         if (current_cube.y == begin_y) {
             edges++;
         }
-        if (i3 < blocks.size() && current_cube.y > begin_y) {
-            if (blocks[i3].block_type != block_type::air) {
-                neighbors++;
-
-                if constexpr (debug) {
+        size_t i3 = i - size_x * size_y;
+        if (i3 < blocks.size()) {
+            if constexpr (debug) {
+                if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                    std::cout << "Block (xyz): " << blocks[i3].x << ", " << blocks[i3].y << ", " << blocks[i3].z
+                              << " block_type: " << block_type::get_name(blocks[i3].block_type) << " y-1" << std::endl;
+                }
+            }
+            if (current_cube.y > begin_y) {
+                if (blocks[i3].block_type != block_type::air) {
+                    neighbors++;
                     if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                        std::cout << "Block: " << blocks[i3].x << ", " << blocks[i3].y << ", " << blocks[i3].z << " y-1"
-                                  << std::endl;
+                        std::cout << "Adding neighbor" << std::endl;
                     }
                 }
             }
         }
 
         // y+1
-        size_t i4 = i + size_x;
-        if (current_cube.y == end_y - 1) {
-            edges++;
-        }
-        if (i4 < blocks.size() && current_cube.y < end_y - 1) {
-            if (blocks[i4].block_type != block_type::air) {
-                neighbors++;
-
-                if constexpr (debug) {
+        size_t i4 = i + size_x * size_y;
+        if (i4 < blocks.size()) {
+            if constexpr (debug) {
+                if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                    std::cout << "Block (xyz): " << blocks[i4].x << ", " << blocks[i4].y << ", " << blocks[i4].z
+                              << " index: " << i4 << " block_type: " << block_type::get_name(blocks[i4].block_type)
+                              << " y+1" << std::endl;
+                }
+            }
+            if (current_cube.y < end_y - 1) {
+                if (blocks[i4].block_type != block_type::air) {
+                    neighbors++;
                     if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                        std::cout << "Block: " << blocks[i4].x << ", " << blocks[i4].y << ", " << blocks[i4].z << " y+1"
-                                  << std::endl;
+                        std::cout << "Adding neighbor" << std::endl;
                     }
                 }
+            }
+        }
+        if (current_cube.y == end_y - 1) {
+            edges++;
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Adding edge" << std::endl;
             }
         }
 
         // z-1
-        size_t i5 = i - size_x * size_y;
-        if (current_cube.z == begin_z) {
-            edges++;
-        }
-        if (i5 < blocks.size() && current_cube.z > begin_z) {
-            if (blocks[i5].block_type != block_type::air) {
-                neighbors++;
-
-                if constexpr (debug) {
+        size_t i5 = i - size_x;
+        if (i5 < blocks.size()) {
+            if constexpr (debug) {
+                if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                    std::cout << "Block (xyz): " << blocks[i5].x << ", " << blocks[i5].y << ", " << blocks[i5].z
+                              << " index: " << i5 << " block_type: " << block_type::get_name(blocks[i5].block_type)
+                              << " z-1" << std::endl;
+                }
+            }
+            if (current_cube.z > begin_z) {
+                if (blocks[i5].block_type != block_type::air) {
+                    neighbors++;
                     if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                        std::cout << "Block: " << blocks[i5].x << ", " << blocks[i5].y << ", " << blocks[i5].z << " z-1"
-                                  << std::endl;
+                        std::cout << "Adding neighbor" << std::endl;
                     }
                 }
             }
         }
-
-        // z+1
-        size_t i6 = i + size_x * size_y;
-        if (current_cube.z == end_z - 1) {
+        if (current_cube.z == begin_z) {
             edges++;
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Adding edge" << std::endl;
+            }
         }
 
-        if (i6 < blocks.size() && current_cube.z < end_z - 1) {
-            if (blocks[i6].block_type != block_type::air) {
-                neighbors++;
-
-                if constexpr (debug) {
+        // z+1
+        size_t i6 = i + size_x;
+        if (i6 < blocks.size()) {
+            if constexpr (debug) {
+                if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                    std::cout << "Block (xyz): " << blocks[i6].x << ", " << blocks[i6].y << ", " << blocks[i6].z
+                              << " index: " << i6 << " block_type: " << block_type::get_name(blocks[i6].block_type)
+                              << " z+1" << std::endl;
+                }
+            }
+            if (current_cube.z < end_z - 1) {
+                if (blocks[i6].block_type != block_type::air) {
+                    neighbors++;
                     if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
-                        std::cout << "Block: " << blocks[i6].x << ", " << blocks[i6].y << ", " << blocks[i6].z << " z+1"
-                                  << std::endl;
+                        std::cout << "Adding neighbor" << std::endl;
                     }
                 }
+            }
+        }
+        if (current_cube.z == end_z - 1) {
+            edges++;
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Adding edge" << std::endl;
             }
         }
 
@@ -236,7 +301,7 @@ void generate(std::vector<block>& blocks,
     // Generate noise 2D noise map (0-255)
     std::vector<unsigned char> v(size_x * size_y, 0);
 
-    #pragma omp parallel for collapse(2) schedule(auto)
+    // #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             // Calculate real x and y from begin_x and begin_y
@@ -245,11 +310,12 @@ void generate(std::vector<block>& blocks,
 
             const uint8_t value_int =
                 static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_y / 256.0, 16, 0.2) * 255.0);
-            v[y * size_x + x] = value_int;
+
             if (debug) {
-                std::cout << "x: " << real_x << ", y: " << real_y << " index: " << y * size_y + x
+                std::cout << "x: " << x << ", y: " << y << " index: " << y * size_y + x
                           << ", value: " << static_cast<int>(value_int) << std::endl;
             }
+            v[y * size_x + x] = value_int;
         }
     }
 
@@ -268,8 +334,8 @@ void generate(std::vector<block>& blocks,
     if constexpr (debug) {
         std::cout << "Generating blocks..." << std::endl;
     }
-    // Generate blocks
-    #pragma omp parallel for collapse(2) schedule(auto)
+// Generate blocks
+#pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             // Calculate real x and y from begin_x and begin_y
@@ -277,20 +343,31 @@ void generate(std::vector<block>& blocks,
             const int real_y = y + begin_y;
 
             // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
-            unsigned char noise_value = v[y * size_x + x] / 4;
+            size_t vec_index = y * size_x + x;
 
-            for (int z = 0; z < size_y; z++) {
+            /*
+            if constexpr (debug) {
+                std::cout << "x: " << x << ", y: " << y << " index: " << vec_index << std::endl;
+            }
+            */
+
+            unsigned char noise_value = v[vec_index] / 4;
+
+            for (int z = 0; z < size_z; z++) {
                 // Calculate real z from begin_z
                 const int real_z = z + begin_z;
 
-                size_t vec_index = y * size_x * size_z + z * size_y + x;
-
-                block& current_block = blocks[vec_index];
+                // vec_index = y * size_x * size_z + z * size_y + x;
+                // vec_index = z * size_x * size_y + y * size_x + x;
+                // vec_index = x * size_y * size_z + y * size_z + z;
+                vec_index = y * size_x + z * size_x * size_y + x;
 
                 if constexpr (debug) {
-                    std::cout << "x: " << real_x << ", y: " << real_y << ", z: " << real_z << " index: " << vec_index
+                    std::cout << "x: " << x << ", y: " << y << ", z: " << z << " index: " << vec_index
                               << ", noise: " << static_cast<int>(noise_value) << std::endl;
                 }
+
+                block& current_block = blocks[vec_index];
 
                 current_block.x = real_x;
                 current_block.y = real_z;
@@ -340,17 +417,18 @@ int main()
 
     const float cube_size = 2.0f;
 
-    siv::PerlinNoise::seed_type seed = 2647393077u;
+    siv::PerlinNoise::seed_type seed = 2510586073u;
     std::cout << "seed: " << seed << std::endl;
 
     siv::PerlinNoise perlin {seed};
 
-    size_t vecX = 32;
+    size_t vecX = 64;
     size_t vecY = 32;
-    size_t vecZ = 32;
+    size_t vecZ = 48;
 
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
+    std::cout << "blocks size: " << blocks.size() << std::endl;
 
     generate(blocks, -0, -0, -0, vecX, vecY, vecZ, perlin, cube_size);
 
@@ -360,7 +438,7 @@ int main()
 
     raylib::Camera camera(
         raylib::Vector3(static_cast<float>(vecX * cube_size / 4),
-                        (vecX / 2) * cube_size,
+                        (vecX / 2) * cube_size + 24.0f,
                         static_cast<float>(vecX * cube_size / 4)),
         raylib::Vector3(static_cast<float>(vecX * cube_size / 2), 0.0f, static_cast<float>(vecX * cube_size / 2)),
         raylib::Vector3(0.0f, 1.0f, 0.0f),
@@ -465,7 +543,8 @@ int main()
 
             // Print block position
             /*
-            std::cout << "Block position: " << closest_block->x << ", " << closest_block->y << ", " << closest_block->z
+            std::cout << "Block position: " << closest_block->x << ", " << closest_block->y << ", " <<
+            closest_block->z
                       << std::endl;
                       */
             block_info_pos = closest_block->get_position();
@@ -582,7 +661,7 @@ int main()
                 screen_middle.x, screen_middle.y - 10, screen_middle.x, screen_middle.y + 10, raylib::Color::SkyBlue());
         }
         EndDrawing();
-
+        /*
         std::cout << "skip_by_display: " << skip_by_display << std::endl;
         std::cout << "skip_by_all_neighbors: " << skip_by_all_neighbors << std::endl;
         std::cout << "skip_by_out_of_screen: " << skip_by_out_of_screen << std::endl;
@@ -595,6 +674,7 @@ int main()
                   << static_cast<float>(blocks.size() - total_skipped) / static_cast<float>(blocks.size()) * 100.0f
                   << "%)" << std::endl;
         std::cout << std::endl;
+        */
 
         skip_by_display = 0;
         skip_by_all_neighbors = 0;

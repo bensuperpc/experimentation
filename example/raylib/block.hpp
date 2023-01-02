@@ -29,7 +29,34 @@ size_t constexpr sand = 4;
 size_t constexpr water = 5;
 size_t constexpr wood = 6;
 size_t constexpr leaves = 7;
+
+std::string get_name(size_t block_type)
+{
+    switch (block_type)
+    {
+        case air:
+            return "air";
+        case grass:
+            return "grass";
+        case dirt:
+            return "dirt";
+        case stone:
+            return "stone";
+        case sand:
+            return "sand";
+        case water:
+            return "water";
+        case wood:
+            return "wood";
+        case leaves:
+            return "leaves";
+        default:
+            return "unknown";
+    }
+}
+
 }  // namespace block_type
+
 
 struct Vector3i
 {
