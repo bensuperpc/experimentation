@@ -52,6 +52,7 @@ add_example_cpp(json_letter json_letter)
 add_example_cpp(rect raylib/rect)
 add_example_cpp(cube raylib/cube)
 add_example_cpp(perlin_noise raylib/perlin_noise)
+add_example_cpp(bench raylib/bench)
 
 # OpenCV
 add_example_cpp(pixel_counter pixel_counter)
