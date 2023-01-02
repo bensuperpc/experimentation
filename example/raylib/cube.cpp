@@ -29,31 +29,15 @@ void optimize(std::vector<block>& blocks,
               const uint32_t size_y,
               const uint32_t size_z)
 {
-    constexpr bool debug = true;
-    constexpr int debug_x = 21;
+    constexpr bool debug = false;
+    constexpr int debug_x = 20;
     constexpr int debug_y = 31;
-    constexpr int debug_z = 21;
+    constexpr int debug_z = 25;
 
     const T end_x = static_cast<T>(begin_x + size_x);
     const T end_y = static_cast<T>(begin_y + size_y);
     const T end_z = static_cast<T>(begin_z + size_z);
-    /*
-    Block (xyz): 21, 31, 21 current
-    Block (xyz): 20, 31, 21 index: 64852 block_type: stone x-1
-    Adding neighbor
-    Block (xyz): 22, 31, 21 index: 64854 block_type: stone x+1
-    Adding neighbor
-    Block (xyz): 21, 30, 21 block_type: stone y-1
-    Adding neighbor
-    Block (xyz): 21, 32, 21 index: 66901 block_type: air y+1
-    Adding edge
-    Block (xyz): 21, 31, 20 index: 64789 block_type: stone z-1
-    Adding neighbor
-    Block (xyz): 21, 31, 22 index: 64917 block_type: stone z+1
-    Adding neighbor
-    Neighbors: 5
-    Edges: 1
-    */
+    
     if constexpr (debug) {
         std::cout << "optimizing..." << std::endl;
         std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
@@ -145,12 +129,13 @@ void optimize(std::vector<block>& blocks,
         if (current_cube.y == begin_y) {
             edges++;
         }
-        size_t i3 = i - size_x * size_y;
+        size_t i3 = i - size_x * size_z;
         if (i3 < blocks.size()) {
             if constexpr (debug) {
                 if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
                     std::cout << "Block (xyz): " << blocks[i3].x << ", " << blocks[i3].y << ", " << blocks[i3].z
-                              << " block_type: " << block_type::get_name(blocks[i3].block_type) << " y-1" << std::endl;
+                              << " index: " << i3 << " block_type: " << block_type::get_name(blocks[i3].block_type)
+                              << " y-1" << std::endl;
                 }
             }
             if (current_cube.y > begin_y) {
@@ -164,7 +149,7 @@ void optimize(std::vector<block>& blocks,
         }
 
         // y+1
-        size_t i4 = i + size_x * size_y;
+        size_t i4 = i + size_x * size_z;
         if (i4 < blocks.size()) {
             if constexpr (debug) {
                 if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
@@ -299,23 +284,23 @@ void generate(std::vector<block>& blocks,
         std::cout << "Generating noise..." << std::endl;
     }
     // Generate noise 2D noise map (0-255)
-    std::vector<unsigned char> v(size_x * size_y, 0);
+    std::vector<unsigned char> v(size_x * size_z, 0);
 
     // #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < size_x; x++) {
-        for (int y = 0; y < size_y; y++) {
-            // Calculate real x and y from begin_x and begin_y
+        for (int z = 0; z < size_z; z++) {
+            // Calculate real x and z from begin_x and begin_z
             const int real_x = x + begin_x;
-            const int real_y = y + begin_y;
+            const int real_z = z + begin_z;
 
             const uint8_t value_int =
-                static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_y / 256.0, 16, 0.2) * 255.0);
+                static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_z / 256.0, 16, 0.2) * 255.0);
 
             if (debug) {
-                std::cout << "x: " << x << ", y: " << y << " index: " << y * size_y + x
+                std::cout << "x: " << x << ", z: " << z << " index: " << z * size_z + x
                           << ", value: " << static_cast<int>(value_int) << std::endl;
             }
-            v[y * size_x + x] = value_int;
+            v[z * size_x + x] = value_int;
         }
     }
 
@@ -337,41 +322,41 @@ void generate(std::vector<block>& blocks,
 // Generate blocks
 #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < size_x; x++) {
-        for (int y = 0; y < size_y; y++) {
-            // Calculate real x and y from begin_x and begin_y
+        for (int z = 0; z < size_z; z++) {
+            // Calculate real x and z from begin_x and begin_z
             const int real_x = x + begin_x;
-            const int real_y = y + begin_y;
+            const int real_z = z + begin_z;
 
             // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
-            size_t vec_index = y * size_x + x;
+            size_t vec_index = z * size_x + x;
 
             /*
             if constexpr (debug) {
-                std::cout << "x: " << x << ", y: " << y << " index: " << vec_index << std::endl;
+                std::cout << "x: " << x << ", z: " << z << " index: " << vec_index << std::endl;
             }
             */
 
-            unsigned char noise_value = v[vec_index] / 4;
+            unsigned char noise_value = v[vec_index] / 8;
 
-            for (int z = 0; z < size_z; z++) {
-                // Calculate real z from begin_z
-                const int real_z = z + begin_z;
+            for (int y = 0; y < size_y; y++) {
+                // Calculate real y from begin_y
+                const int real_y = y + begin_y;
 
-                // vec_index = y * size_x * size_z + z * size_y + x;
-                // vec_index = z * size_x * size_y + y * size_x + x;
-                // vec_index = x * size_y * size_z + y * size_z + z;
-                vec_index = y * size_x + z * size_x * size_y + x;
+                // vec_index = z * size_x * size_z + z * size_z + x;
+                // vec_index = y * size_x * size_z + z * size_x + x;
+                // vec_index = x * size_z * size_z + z * size_z + y;
+                vec_index = z * size_x + y * size_x * size_z + x;
 
                 if constexpr (debug) {
-                    std::cout << "x: " << x << ", y: " << y << ", z: " << z << " index: " << vec_index
+                    std::cout << "x: " << x << ", z: " << z << ", y: " << y << " index: " << vec_index
                               << ", noise: " << static_cast<int>(noise_value) << std::endl;
                 }
 
                 block& current_block = blocks[vec_index];
 
                 current_block.x = real_x;
-                current_block.y = real_z;
-                current_block.z = real_y;
+                current_block.y = real_y;
+                current_block.z = real_z;
 
                 current_block.size_x = cube_size;
                 current_block.size_y = cube_size;
@@ -379,7 +364,7 @@ void generate(std::vector<block>& blocks,
                 current_block.color = raylib::Color::Gray();
 
                 // If the noise value is greater than the current block, make it air
-                if (z > noise_value) {
+                if (y > noise_value) {
                     current_block.is_visible = false;
                     current_block.block_type = block_type::air;
                     continue;
@@ -430,7 +415,7 @@ int main()
     std::vector<block> blocks = std::vector<block>(vec_size);
     std::cout << "blocks size: " << blocks.size() << std::endl;
 
-    generate(blocks, -0, -0, -0, vecX, vecY, vecZ, perlin, cube_size);
+    generate(blocks, -8, -8, -8, vecX, vecY, vecZ, perlin, cube_size);
 
     for (size_t i = 0; i < vec_size; i++) {
         blocks[i].texture = &textureGrid;
