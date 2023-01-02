@@ -20,14 +20,25 @@
 #include "block.hpp"
 #include "world.hpp"
 
-void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const int vecZ)
+template<typename T = int>
+void optimize(std::vector<block>& blocks,
+              const T begin_x,
+              const T begin_y,
+              const T begin_z,
+              const uint32_t size_x,
+              const uint32_t size_y,
+              const uint32_t size_z)
 {
+    constexpr bool debug = false;
+    constexpr int debug_x = 61;
+    constexpr int debug_y = 12;
+    constexpr int debug_z = 2;
+
     std::cout << "Optimizing..." << std::endl;
 
-    constexpr bool debug = false;
-    constexpr int debug_x = 0;
-    constexpr int debug_y = 15;
-    constexpr int debug_z = 17;
+    const T end_x = static_cast<T>(begin_x + size_x);
+    const T end_y = static_cast<T>(begin_y + size_y);
+    const T end_z = static_cast<T>(begin_z + size_z);
 
 #pragma omp parallel for schedule(auto)
     for (size_t i = 0; i < blocks.size(); i++) {
@@ -58,10 +69,10 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
 
         // x-1
         size_t i1 = i - 1;
-        if (current_cube.x == 0) {
+        if (current_cube.x == begin_x) {
             edges++;
         }
-        if (i1 < blocks.size() && current_cube.x > 0) {
+        if (i1 < blocks.size() && current_cube.x > begin_x) {
             if (blocks[i1].block_type != block_type::air) {
                 neighbors++;
 
@@ -76,10 +87,10 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
 
         // x+1
         size_t i2 = i + 1;
-        if (current_cube.x == vecX - 1) {
+        if (current_cube.x == end_x - 1) {
             edges++;
         }
-        if (i2 < blocks.size() && current_cube.x < vecX - 1) {
+        if (i2 < blocks.size() && current_cube.x < end_x - 1) {
             if (blocks[i2].block_type != block_type::air) {
                 neighbors++;
 
@@ -93,11 +104,11 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         }
 
         // y-1
-        size_t i3 = i - vecX;
-        if (current_cube.y == 0) {
+        size_t i3 = i - size_x;
+        if (current_cube.y == begin_y) {
             edges++;
         }
-        if (i3 < blocks.size() && current_cube.y > 0) {
+        if (i3 < blocks.size() && current_cube.y > begin_y) {
             if (blocks[i3].block_type != block_type::air) {
                 neighbors++;
 
@@ -111,11 +122,11 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         }
 
         // y+1
-        size_t i4 = i + vecX;
-        if (current_cube.y == vecY - 1) {
+        size_t i4 = i + size_x;
+        if (current_cube.y == end_y - 1) {
             edges++;
         }
-        if (i4 < blocks.size() && current_cube.y < vecY - 1) {
+        if (i4 < blocks.size() && current_cube.y < end_y - 1) {
             if (blocks[i4].block_type != block_type::air) {
                 neighbors++;
 
@@ -129,11 +140,11 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         }
 
         // z-1
-        size_t i5 = i - vecX * vecY;
-        if (current_cube.z == 0) {
+        size_t i5 = i - size_x * size_y;
+        if (current_cube.z == begin_z) {
             edges++;
         }
-        if (i5 < blocks.size() && current_cube.z > 0) {
+        if (i5 < blocks.size() && current_cube.z > begin_z) {
             if (blocks[i5].block_type != block_type::air) {
                 neighbors++;
 
@@ -147,12 +158,12 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         }
 
         // z+1
-        size_t i6 = i + vecX * vecY;
-        if (current_cube.z == vecZ - 1) {
+        size_t i6 = i + size_x * size_y;
+        if (current_cube.z == end_z - 1) {
             edges++;
         }
 
-        if (i6 < blocks.size() && current_cube.z < vecZ - 1) {
+        if (i6 < blocks.size() && current_cube.z < end_z - 1) {
             if (blocks[i6].block_type != block_type::air) {
                 neighbors++;
 
@@ -210,9 +221,9 @@ void generate(std::vector<block>& blocks,
 {
     constexpr bool debug = false;
 
-    T end_x = static_cast<T>(begin_x + size_x);
-    T end_y = static_cast<T>(begin_y + size_y);
-    T end_z = static_cast<T>(begin_z + size_z);
+    const T end_x = static_cast<T>(begin_x + size_x);
+    const T end_y = static_cast<T>(begin_y + size_y);
+    const T end_z = static_cast<T>(begin_z + size_z);
 
     if constexpr (debug) {
         std::cout << "Generating:" << std::endl;
@@ -225,17 +236,18 @@ void generate(std::vector<block>& blocks,
     // Generate noise 2D noise map (0-255)
     std::vector<unsigned char> v(size_x * size_y, 0);
 
-    // #pragma omp parallel for collapse(2) schedule(auto)
+    #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             // Calculate real x and y from begin_x and begin_y
             const int real_x = x + begin_x;
             const int real_y = y + begin_y;
 
-            const uint8_t value_int = static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_y / 256.0, 16, 0.2) * 255.0);
-            v[std::abs(y) * size_x + std::abs(x)] = value_int;
+            const uint8_t value_int =
+                static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_y / 256.0, 16, 0.2) * 255.0);
+            v[y * size_x + x] = value_int;
             if (debug) {
-                std::cout << "x: " << real_x << ", y: " << real_y << " index: " << std::abs(y) * size_y + std::abs(x)
+                std::cout << "x: " << real_x << ", y: " << real_y << " index: " << y * size_y + x
                           << ", value: " << static_cast<int>(value_int) << std::endl;
             }
         }
@@ -257,7 +269,7 @@ void generate(std::vector<block>& blocks,
         std::cout << "Generating blocks..." << std::endl;
     }
     // Generate blocks
-    // #pragma omp parallel for collapse(2) schedule(auto)
+    #pragma omp parallel for collapse(2) schedule(auto)
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             // Calculate real x and y from begin_x and begin_y
@@ -274,6 +286,7 @@ void generate(std::vector<block>& blocks,
                 size_t vec_index = y * size_x * size_z + z * size_y + x;
 
                 block& current_block = blocks[vec_index];
+
                 if constexpr (debug) {
                     std::cout << "x: " << real_x << ", y: " << real_y << ", z: " << real_z << " index: " << vec_index
                               << ", noise: " << static_cast<int>(noise_value) << std::endl;
@@ -300,7 +313,7 @@ void generate(std::vector<block>& blocks,
             }
         }
     }
-    optimize(blocks, size_x, size_y, size_z);
+    optimize(blocks, begin_x, begin_y, begin_z, size_x, size_y, size_z);
 }
 
 int main()
@@ -339,7 +352,7 @@ int main()
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
 
-    generate(blocks, -2, -2, -2, vecX, vecY, vecZ, perlin, cube_size);
+    generate(blocks, -0, -0, -0, vecX, vecY, vecZ, perlin, cube_size);
 
     for (size_t i = 0; i < vec_size; i++) {
         blocks[i].texture = &textureGrid;
