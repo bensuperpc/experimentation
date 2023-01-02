@@ -32,8 +32,11 @@ class chunk
         ~chunk() {}
 
     static constexpr int chunk_size_x = 16;
-    static constexpr int chunk_size_y = 16; // 128 ?
+    static constexpr int chunk_size_y = 64;
     static constexpr int chunk_size_z = 16;
+    static constexpr int chunk_size = chunk_size_x * chunk_size_y * chunk_size_z;
+
+    std::vector<block> blocks = std::vector<block>(chunk_size);
 
 };
 

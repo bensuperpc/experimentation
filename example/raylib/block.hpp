@@ -68,6 +68,10 @@ class block
         {
         }
 
+        block()
+        {
+        }
+
         ~block() {}
 
         BoundingBox get_bounding_box() const
@@ -121,6 +125,10 @@ class block
         size_t block_type = 0;
 
         raylib::Texture2D* texture = nullptr;
+
+        // debug
+        size_t neighbors = 0;
+        size_t edges = 0;
 };
 
 #endif  // CUBE_BLOCK_HPP
