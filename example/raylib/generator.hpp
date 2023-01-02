@@ -46,6 +46,11 @@ class generator
             return seed;
         }
 
+        void generate()
+        {
+            
+        }
+
     private:
         // default seed
         siv::PerlinNoise::seed_type seed = 2647393077u;

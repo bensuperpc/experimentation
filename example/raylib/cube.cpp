@@ -20,21 +20,27 @@
 #include "block.hpp"
 #include "world.hpp"
 
-void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const int vecZ, const float cube_size)
+void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const int vecZ)
 {
-    // #pragma omp parallel for schedule(auto)
+    constexpr bool debug = false;
+    constexpr int debug_x = 0;
+    constexpr int debug_y = 15;
+    constexpr int debug_z = 17;
+
+#pragma omp parallel for schedule(auto)
     for (size_t i = 0; i < blocks.size(); i++) {
         block& current_cube = blocks[i];
 
-        /*
         if (current_cube.block_type == block_type::air) {
             current_cube.is_visible = false;
             continue;
         }
-        */
-        if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-            std::cout << "Block: " << current_cube.x << ", " << current_cube.y << ", " << current_cube.z << " current"
-                      << std::endl;
+
+        if constexpr (debug) {
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Block: " << current_cube.x << ", " << current_cube.y << ", " << current_cube.z
+                          << " current" << std::endl;
+            }
         }
 
         /*
@@ -43,8 +49,9 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         int z = (i / (vecX * vecY)) % vecZ;
         */
 
-        // If block has all 6 neighbors is displayed, skip it
+        // Count neighbors
         size_t neighbors = 0;
+        // Count edges
         size_t edges = 0;
 
         // x-1
@@ -55,9 +62,12 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         if (i1 < blocks.size() && current_cube.x > 0) {
             if (blocks[i1].block_type != block_type::air) {
                 neighbors++;
-                if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-                    std::cout << "Block: " << blocks[i1].x << ", " << blocks[i1].y << ", " << blocks[i1].z << " x-1"
-                              << std::endl;
+
+                if constexpr (debug) {
+                    if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                        std::cout << "Block: " << blocks[i1].x << ", " << blocks[i1].y << ", " << blocks[i1].z << " x-1"
+                                  << std::endl;
+                    }
                 }
             }
         }
@@ -70,9 +80,12 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         if (i2 < blocks.size() && current_cube.x < vecX - 1) {
             if (blocks[i2].block_type != block_type::air) {
                 neighbors++;
-                if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-                    std::cout << "Block: " << blocks[i2].x << ", " << blocks[i2].y << ", " << blocks[i2].z << " x+1"
-                              << std::endl;
+
+                if constexpr (debug) {
+                    if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                        std::cout << "Block: " << blocks[i2].x << ", " << blocks[i2].y << ", " << blocks[i2].z << " x+1"
+                                  << std::endl;
+                    }
                 }
             }
         }
@@ -85,9 +98,12 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         if (i3 < blocks.size() && current_cube.y > 0) {
             if (blocks[i3].block_type != block_type::air) {
                 neighbors++;
-                if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-                    std::cout << "Block: " << blocks[i3].x << ", " << blocks[i3].y << ", " << blocks[i3].z << " y-1"
-                              << std::endl;
+
+                if constexpr (debug) {
+                    if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                        std::cout << "Block: " << blocks[i3].x << ", " << blocks[i3].y << ", " << blocks[i3].z << " y-1"
+                                  << std::endl;
+                    }
                 }
             }
         }
@@ -100,9 +116,12 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         if (i4 < blocks.size() && current_cube.y < vecY - 1) {
             if (blocks[i4].block_type != block_type::air) {
                 neighbors++;
-                if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-                    std::cout << "Block: " << blocks[i4].x << ", " << blocks[i4].y << ", " << blocks[i4].z << " y+1"
-                              << std::endl;
+
+                if constexpr (debug) {
+                    if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                        std::cout << "Block: " << blocks[i4].x << ", " << blocks[i4].y << ", " << blocks[i4].z << " y+1"
+                                  << std::endl;
+                    }
                 }
             }
         }
@@ -115,9 +134,12 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         if (i5 < blocks.size() && current_cube.z > 0) {
             if (blocks[i5].block_type != block_type::air) {
                 neighbors++;
-                if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-                    std::cout << "Block: " << blocks[i5].x << ", " << blocks[i5].y << ", " << blocks[i5].z << " z-1"
-                              << std::endl;
+
+                if constexpr (debug) {
+                    if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                        std::cout << "Block: " << blocks[i5].x << ", " << blocks[i5].y << ", " << blocks[i5].z << " z-1"
+                                  << std::endl;
+                    }
                 }
             }
         }
@@ -131,13 +153,16 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         if (i6 < blocks.size() && current_cube.z < vecZ - 1) {
             if (blocks[i6].block_type != block_type::air) {
                 neighbors++;
-                if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-                    std::cout << "Block: " << blocks[i6].x << ", " << blocks[i6].y << ", " << blocks[i6].z << " z+1"
-                              << std::endl;
+
+                if constexpr (debug) {
+                    if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                        std::cout << "Block: " << blocks[i6].x << ", " << blocks[i6].y << ", " << blocks[i6].z << " z+1"
+                                  << std::endl;
+                    }
                 }
             }
         }
-        
+
         if (neighbors == 6 && edges == 0) {
             current_cube.is_visible = false;
         } else if (neighbors == 5 && edges == 1) {
@@ -159,30 +184,40 @@ void optimize(std::vector<block>& blocks, const int vecX, const int vecY, const 
         // for debug
         current_cube.neighbors = neighbors;
         current_cube.edges = edges;
-        if (current_cube.x == 0 && current_cube.y == 15 && current_cube.z == 17) {
-            std::cout << "Neighbors: " << neighbors << std::endl;
-            std::cout << "Edges: " << edges << std::endl;
-            std::cout << std::endl;
-        }
 
+        if constexpr (debug) {
+            if (current_cube.x == debug_x && current_cube.y == debug_y && current_cube.z == debug_z) {
+                std::cout << "Neighbors: " << neighbors << std::endl;
+                std::cout << "Edges: " << edges << std::endl;
+                std::cout << std::endl;
+            }
+        }
     }
 }
 
+template<typename T = int>
 void generate(std::vector<block>& blocks,
-              const int vecX,
-              const int vecY,
-              const int vecZ,
+              const T begin_x,
+              const T begin_y,
+              const T begin_z,
+              const uint32_t size_x,
+              const uint32_t size_y,
+              const uint32_t size_z,
               siv::PerlinNoise& perlin,
               const float cube_size)
-{
-    // Generate noise 2D noise map (0-255)
-    std::vector<unsigned char> v(vecX * vecY, 0);
+{   
+    T end_x = static_cast<T>(begin_x + size_x);
+    T end_y = static_cast<T>(begin_y + size_y);
+    T end_z = static_cast<T>(begin_z + size_z);
 
-    // #pragma omp parallel for collapse(2) schedule(auto)
-    for (int x = 0; x < vecX; x++) {
-        for (int y = 0; y < vecY; y++) {
+    // Generate noise 2D noise map (0-255)
+    std::vector<unsigned char> v(size_x * size_y, 0);
+
+    #pragma omp parallel for collapse(2) schedule(auto)
+    for (T x = begin_x; x < end_x; x++) {
+        for (T y = begin_y; y < end_y; y++) {
             const uint8_t value_int = static_cast<uint8_t>(perlin.octave2D_01(x / 256.0, y / 256.0, 16, 0.2) * 255.0);
-            v[y * vecY + x] = value_int;
+            v[y * size_y + x] = value_int;
         }
     }
 
@@ -191,15 +226,20 @@ void generate(std::vector<block>& blocks,
     std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
     std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
 
+    // Insert blocks if needed to make sure the vector is the correct size
+    if (blocks.size() < size_x * size_y * size_z) {
+        blocks.insert(blocks.end(), size_x * size_y * size_z - blocks.size(), block());
+    }
+
     // Generate blocks
-    // #pragma omp parallel for collapse(2) schedule(auto)
-    for (int x = 0; x < vecX; x++) {
-        for (int y = 0; y < vecY; y++) {
-            size_t vec_index = x * vecX + y;
+    #pragma omp parallel for collapse(2) schedule(auto)
+    for (T x = begin_x; x < end_x; x++) {
+        for (T y = begin_y; y < size_y; y++) {
+            size_t vec_index = x * end_y + y;
             // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
             unsigned char noise_value = v[vec_index] / 4;
-            for (int z = 0; z < vecZ; z++) {
-                block& current_block = blocks[y * vecX * vecZ + z * vecY + x];
+            for (T z = begin_z; z < end_z; z++) {
+                block& current_block = blocks[y * size_x * size_z + z * size_y + x];
 
                 current_block.x = x;
                 current_block.y = z;
@@ -222,7 +262,7 @@ void generate(std::vector<block>& blocks,
             }
         }
     }
-    optimize(blocks, vecX, vecY, vecZ, cube_size);
+    optimize(blocks, size_x, size_y, size_z);
 }
 
 int main()
@@ -261,7 +301,7 @@ int main()
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
 
-    generate(blocks, vecX, vecY, vecZ, perlin, cube_size);
+    generate(blocks, 0,0,0,  vecX, vecY, vecZ, perlin, cube_size);
 
     for (size_t i = 0; i < vec_size; i++) {
         blocks[i].texture = &textureGrid;
@@ -286,6 +326,7 @@ int main()
 
     // Block info
     Vector3i block_info_pos = {0, 0, 0};
+    Vector3 block_info_real_pos = {0, 0, 0};
     size_t block_info_index = 0;
     size_t block_info_neighbour = 0;
     size_t block_info_edges = 0;
@@ -316,7 +357,7 @@ int main()
             decltype(seed) seed = std::random_device()();
             std::cout << "seed: " << seed << std::endl;
             perlin.reseed(seed);
-            generate(blocks, vecX, vecY, vecZ, perlin, cube_size);
+            generate(blocks, 0,0,0, vecX, vecY, vecZ, perlin, cube_size);
         }
 
         if (IsKeyPressed(KEY_G)) {
@@ -376,11 +417,13 @@ int main()
                       << std::endl;
                       */
             block_info_pos = closest_block->get_position();
+            block_info_real_pos = closest_block->get_real_position();
             block_info_index = closest_block->x + closest_block->z * vecX + closest_block->y * vecX * vecZ;
             block_info_neighbour = closest_block->neighbors;
             block_info_edges = closest_block->edges;
         } else {
             block_info_pos = {0, 0, 0};
+            block_info_real_pos = {0.0, 0.0, 0.0};
             block_info_index = 0;
             block_info_neighbour = 0;
             block_info_edges = 0;
@@ -469,9 +512,13 @@ int main()
                 + std::to_string(block_info_pos.y) + ", " + std::to_string(block_info_pos.z);
             DrawText(block_info.c_str(), 10, 30, 20, raylib::Color::Black());
             DrawText(("Index: " + std::to_string(block_info_index)).c_str(), 10, 50, 20, raylib::Color::Black());
+            DrawText(("Real XYZ: " + std::to_string(block_info_real_pos.x) + ", " + std::to_string(block_info_real_pos.y)
+                         + ", " + std::to_string(block_info_real_pos.z))
+                         .c_str(),
+                10, 70, 20, raylib::Color::Black());
             DrawText(
-                ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 70, 20, raylib::Color::Black());
-            DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 90, 20, raylib::Color::Black());
+                ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 90, 20, raylib::Color::Black());
+            DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 110, 20, raylib::Color::Black());
 
             // Draw crosshair in the middle of the screen
             DrawLine(

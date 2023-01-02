@@ -25,16 +25,16 @@
 class chunk
 {
     public:
-        explicit chunk()
+        chunk()
         {
         }
 
         ~chunk() {}
 
-    static constexpr int chunk_size_x = 16;
-    static constexpr int chunk_size_y = 64;
-    static constexpr int chunk_size_z = 16;
-    static constexpr int chunk_size = chunk_size_x * chunk_size_y * chunk_size_z;
+    int chunk_size_x = 16;
+    int chunk_size_y = 64;
+    int chunk_size_z = 16;
+    int chunk_size = chunk_size_x * chunk_size_y * chunk_size_z;
 
     std::vector<block> blocks = std::vector<block>(chunk_size);
 
