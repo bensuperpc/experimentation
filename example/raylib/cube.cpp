@@ -19,6 +19,7 @@
 // Cube lib
 #include "block.hpp"
 #include "world.hpp"
+#include "generator.hpp"
 
 template<typename T = int>
 void optimize(std::vector<block>& blocks,
@@ -258,131 +259,12 @@ void optimize(std::vector<block>& blocks,
     }
 }
 
-template<typename T = int>
-void generate(std::vector<block>& blocks,
-              const T begin_x,
-              const T begin_y,
-              const T begin_z,
-              const uint32_t size_x,
-              const uint32_t size_y,
-              const uint32_t size_z,
-              siv::PerlinNoise& perlin,
-              const float cube_size)
-{
-    constexpr bool debug = false;
-
-    const T end_x = static_cast<T>(begin_x + size_x);
-    const T end_y = static_cast<T>(begin_y + size_y);
-    const T end_z = static_cast<T>(begin_z + size_z);
-
-    if constexpr (debug) {
-        std::cout << "Generating:" << std::endl;
-        std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
-        std::cout << "To (xyz): " << end_x << ", " << end_y << ", " << end_z << std::endl;
-        std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
-
-        std::cout << "Generating noise..." << std::endl;
-    }
-    // Generate noise 2D noise map (0-255)
-    std::vector<unsigned char> v(size_x * size_z, 0);
-
-    // #pragma omp parallel for collapse(2) schedule(auto)
-    for (int x = 0; x < size_x; x++) {
-        for (int z = 0; z < size_z; z++) {
-            // Calculate real x and z from begin_x and begin_z
-            const int real_x = x + begin_x;
-            const int real_z = z + begin_z;
-
-            const uint8_t value_int =
-                static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_z / 256.0, 16, 0.2) * 255.0);
-
-            if (debug) {
-                std::cout << "x: " << x << ", z: " << z << " index: " << z * size_z + x
-                          << ", value: " << static_cast<int>(value_int) << std::endl;
-            }
-            v[z * size_x + x] = value_int;
-        }
-    }
-
-    if constexpr (debug) {
-        // cout max and min
-        auto minmax = std::minmax_element(v.begin(), v.end());
-        std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
-        std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
-    }
-
-    // Insert blocks if needed to make sure the vector is the correct size
-    if (blocks.size() < size_x * size_y * size_z) {
-        blocks.insert(blocks.end(), size_x * size_y * size_z - blocks.size(), block());
-    }
-
-    if constexpr (debug) {
-        std::cout << "Generating blocks..." << std::endl;
-    }
-// Generate blocks
-#pragma omp parallel for collapse(2) schedule(auto)
-    for (int x = 0; x < size_x; x++) {
-        for (int z = 0; z < size_z; z++) {
-            // Calculate real x and z from begin_x and begin_z
-            const int real_x = x + begin_x;
-            const int real_z = z + begin_z;
-
-            // Noise value is divided by 4 to make it smaller and it is used as the height of the block (z)
-            size_t vec_index = z * size_x + x;
-
-            /*
-            if constexpr (debug) {
-                std::cout << "x: " << x << ", z: " << z << " index: " << vec_index << std::endl;
-            }
-            */
-
-            unsigned char noise_value = v[vec_index] / 8;
-
-            for (int y = 0; y < size_y; y++) {
-                // Calculate real y from begin_y
-                const int real_y = y + begin_y;
-
-                // vec_index = z * size_x * size_z + z * size_z + x;
-                // vec_index = y * size_x * size_z + z * size_x + x;
-                // vec_index = x * size_z * size_z + z * size_z + y;
-                vec_index = z * size_x + y * size_x * size_z + x;
-
-                if constexpr (debug) {
-                    std::cout << "x: " << x << ", z: " << z << ", y: " << y << " index: " << vec_index
-                              << ", noise: " << static_cast<int>(noise_value) << std::endl;
-                }
-
-                block& current_block = blocks[vec_index];
-
-                current_block.x = real_x;
-                current_block.y = real_y;
-                current_block.z = real_z;
-
-                current_block.size_x = cube_size;
-                current_block.size_y = cube_size;
-                current_block.size_z = cube_size;
-                current_block.color = raylib::Color::Gray();
-
-                // If the noise value is greater than the current block, make it air
-                if (y > noise_value) {
-                    current_block.is_visible = false;
-                    current_block.block_type = block_type::air;
-                    continue;
-                }
-
-                current_block.is_visible = true;
-                current_block.block_type = block_type::stone;
-            }
-        }
-    }
-    optimize(blocks, begin_x, begin_y, begin_z, size_x, size_y, size_z);
-}
-
 int main()
 {
     std::ios_base::sync_with_stdio(false);
 
     world current_world;
+    
 
     const int screen_width = 1920;
     const int screen_height = 1080;
@@ -405,17 +287,18 @@ int main()
     siv::PerlinNoise::seed_type seed = 2510586073u;
     std::cout << "seed: " << seed << std::endl;
 
-    siv::PerlinNoise perlin {seed};
+    generator current_generator(seed);
 
-    size_t vecX = 64;
-    size_t vecY = 32;
-    size_t vecZ = 48;
+    uint32_t vecX = 64;
+    uint32_t vecY = 32;
+    uint32_t vecZ = 48;
 
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
     std::cout << "blocks size: " << blocks.size() << std::endl;
 
-    generate(blocks, -8, -8, -8, vecX, vecY, vecZ, perlin, cube_size);
+    current_generator.generate(blocks, -8, -8, -8, vecX, vecY, vecZ);
+    optimize(blocks, -8, -8, -8, vecX, vecY, vecZ);
 
     for (size_t i = 0; i < vec_size; i++) {
         blocks[i].texture = &textureGrid;
@@ -471,8 +354,9 @@ int main()
         if (IsKeyPressed(KEY_R)) {
             decltype(seed) seed = std::random_device()();
             std::cout << "seed: " << seed << std::endl;
-            perlin.reseed(seed);
-            generate(blocks, -0, -0, -0, vecX, vecY, vecZ, perlin, cube_size);
+            current_generator.reseed(seed);
+            current_generator.generate(blocks, -8, -8, -8, vecX, vecY, vecZ);
+            optimize(blocks, -8, -8, -8, vecX, vecY, vecZ);
         }
 
         if (IsKeyPressed(KEY_G)) {

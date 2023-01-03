@@ -101,7 +101,7 @@ class block
 
         ~block() {}
 
-        BoundingBox get_bounding_box() const
+        [[nodiscard]] BoundingBox get_bounding_box() const
         {
             raylib::Vector3 cube_begin = {x * size_x - size_x / 2, y * size_y - size_y / 2, z * size_z - size_z / 2};
             raylib::Vector3 cube_end = {x * size_x + size_x / 2, y * size_y + size_y / 2, z * size_z + size_z / 2};
@@ -129,13 +129,13 @@ class block
             DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
         }
 
-        raylib::Vector3 get_size() const { return {size_x, size_y, size_z}; }
+        [[nodiscard]] raylib::Vector3 get_size() const { return {size_x, size_y, size_z}; }
 
-        raylib::Vector3 get_center() const { return raylib::Vector3(x * size_x, y * size_y, z * size_z); }
+        [[nodiscard]] raylib::Vector3 get_center() const { return raylib::Vector3(x * size_x, y * size_y, z * size_z); }
 
-        raylib::Vector3 get_real_position() const { return {x * size_x, y * size_y, z * size_z}; }
+        [[nodiscard]] raylib::Vector3 get_real_position() const { return {x * size_x, y * size_y, z * size_z}; }
 
-        Vector3i get_position() const { return {x, y, z}; }
+        [[nodiscard]] Vector3i get_position() const { return {x, y, z}; }
 
         // Block coordinates
         int x = 0;
