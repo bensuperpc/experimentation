@@ -184,7 +184,7 @@ class generator
                                               chunk::chunk_size_x,
                                               chunk::chunk_size_y,
                                               chunk::chunk_size_z);
-                        std::vector<block> blocks(chunk::chunk_size_x * chunk::chunk_size_y * chunk::chunk_size_z);
+                        std::vector<block> blocks = std::vector<block>(chunk::chunk_size_x * chunk::chunk_size_y * chunk::chunk_size_z, block());
                         // TODO: Add for negative values
                         generate(blocks,
                                  x * chunk::chunk_size_x,

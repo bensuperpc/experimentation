@@ -61,25 +61,11 @@ int main()
     std::vector<chunk> chunks = std::vector<chunk>(chunk_size);
     new_generator.generate_word(chunks, chunk_x, chunk_y, chunk_z);
 
-    uint32_t vecX = 64;
-    uint32_t vecY = 32;
-    uint32_t vecZ = 64;
-
-    size_t vec_size = vecX * vecY * vecZ;
-    std::vector<block> blocks = std::vector<block>(vec_size);
-    std::cout << "blocks size: " << blocks.size() << std::endl;
-
-    current_generator.generate(blocks, -8, -8, -8, vecX, vecY, vecZ);
-
-    for (size_t i = 0; i < vec_size; i++) {
-        blocks[i].texture = &textureGrid;
-    }
-
     raylib::Camera camera(
-        raylib::Vector3(static_cast<float>(vecX * cube_size / 4),
-                        (vecX / 2) * cube_size + 24.0f,
-                        static_cast<float>(vecX * cube_size / 4)),
-        raylib::Vector3(static_cast<float>(vecX * cube_size / 2), 0.0f, static_cast<float>(vecX * cube_size / 2)),
+        raylib::Vector3(static_cast<float>(64 *  2.0f / 4),
+                        (64 / 2) *  2.0f + 24.0f,
+                        static_cast<float>(64 *  2.0f / 4)),
+        raylib::Vector3(static_cast<float>(64 *  2.0f / 2), 0.0f, static_cast<float>(64 *  2.0f / 2)),
         raylib::Vector3(0.0f, 1.0f, 0.0f),
         60.0f,
         CAMERA_PERSPECTIVE);
@@ -195,7 +181,7 @@ int main()
                       */
             block_info_pos = closest_block->get_position();
             block_info_real_pos = closest_block->get_real_position();
-            block_info_index = closest_block->x + closest_block->z * vecX + closest_block->y * vecX * vecZ;
+            block_info_index = closest_block->x + closest_block->z * 16 + closest_block->y * 16 * 16;
             block_info_neighbour = closest_block->neighbors;
             block_info_edges = closest_block->edges;
         } else {
