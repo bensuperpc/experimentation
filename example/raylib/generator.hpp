@@ -79,7 +79,7 @@ class generator
             // Generate noise 2D noise map (0-255)
             std::vector<unsigned char> v(size_x * size_z, 0);
 
-            // #pragma omp parallel for collapse(2) schedule(auto)
+#pragma omp parallel for collapse(2) schedule(auto)
             for (uint32_t x = 0; x < size_x; x++) {
                 for (uint32_t z = 0; z < size_z; z++) {
                     // Calculate real x and z from begin_x and begin_z
