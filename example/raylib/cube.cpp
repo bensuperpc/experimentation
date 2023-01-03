@@ -236,7 +236,8 @@ int main()
                     }
                 }
                 if (show_chunk_grid) {
-                    current_chunk.draw_wireframe();
+                    // FIx bug: draw chunk grid
+                    current_chunk.draw_box();
                 }
             }
             if (show_block_grid) {

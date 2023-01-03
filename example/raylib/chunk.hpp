@@ -47,16 +47,15 @@ class chunk
         [[nodiscard]] std::vector<block>& get_blocks() { return blocks; }
         void set_blocks(std::vector<block>& blocks) { this->blocks = blocks; }
 
-        void draw_wireframe() const
+        void draw_box() const
         {
             raylib::Vector3 pos = get_real_position();
             pos.x += chunk_size_x - block::size_x / 2;
             pos.y += chunk_size_y - block::size_y / 2;
             pos.z += chunk_size_z - block::size_z / 2;
-            raylib::Vector3 size = {chunk_size_x* block::size_x, chunk_size_y* block::size_y, chunk_size_z*
-            block::size_z}; raylib::Color color = raylib::Color::Green(); std::cout << "Drawing chunk at " << pos.x <<
-            ", " << pos.y << ", " << pos.z << " with size " << size.x << ", "
-                      << size.y << ", " << size.z << std::endl;
+            raylib::Vector3 size = {
+                chunk_size_x * block::size_x, chunk_size_y * block::size_y, chunk_size_z * block::size_z};
+            raylib::Color color = raylib::Color::Green();
             DrawCubeWiresV(pos, size, color);
         }
 
