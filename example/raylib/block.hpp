@@ -109,21 +109,25 @@ class block
             return box;
         }
 
+        // TODO: Move in Drawer class ?
         void draw() const
         {
             DrawCubeV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, color);
         }
 
+        // TODO: Move in Drawer class ?
         void draw_texture() const
         {
             DrawCubeTexture(*texture, raylib::Vector3(x * size_x, y * size_y, z * size_z), size_x, size_y, size_z, raylib::Color::White());
         }
 
+        // TODO: Move in Drawer class ?
         void draw_wireframe() const
         {
             DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
         }
 
+        // TODO: Move in Drawer class ?
         void draw_box() const
         {
             DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());

@@ -54,14 +54,13 @@ int main()
 
     uint32_t vecX = 64;
     uint32_t vecY = 32;
-    uint32_t vecZ = 48;
+    uint32_t vecZ = 64;
 
     size_t vec_size = vecX * vecY * vecZ;
     std::vector<block> blocks = std::vector<block>(vec_size);
     std::cout << "blocks size: " << blocks.size() << std::endl;
 
     current_generator.generate(blocks, -8, -8, -8, vecX, vecY, vecZ);
-    current_optimizer.optimize(blocks, -8, -8, -8, vecX, vecY, vecZ);
 
     for (size_t i = 0; i < vec_size; i++) {
         blocks[i].texture = &textureGrid;
@@ -119,7 +118,6 @@ int main()
             std::cout << "seed: " << seed << std::endl;
             current_generator.reseed(seed);
             current_generator.generate(blocks, -8, -8, -8, vecX, vecY, vecZ);
-            current_optimizer.optimize(blocks, -8, -8, -8, vecX, vecY, vecZ);
         }
 
         if (IsKeyPressed(KEY_G)) {
@@ -198,6 +196,8 @@ int main()
         size_t skip_by_out_of_screen = 0;
         size_t skip_by_surface_only = 0;
 
+        size_t display_block_count = 0;
+
         BeginDrawing();
         {
             window.ClearBackground(RAYWHITE);
@@ -243,6 +243,7 @@ int main()
                 if (show_plain_block) {
 #pragma omp critical
                     current_cube.draw();
+                    display_block_count++;
                 }
                 if (show_grid) {
 #pragma omp critical
@@ -286,6 +287,9 @@ int main()
                 ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 90, 20, raylib::Color::Black());
             DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 110, 20, raylib::Color::Black());
 
+            // Draw statistics
+            DrawText(("Blocks on screen: " + std::to_string(display_block_count)).c_str(), 10, 150, 20, raylib::Color::Black());
+
             // Draw crosshair in the middle of the screen
             DrawLine(
                 screen_middle.x - 10, screen_middle.y, screen_middle.x + 10, screen_middle.y, raylib::Color::SkyBlue());
@@ -311,6 +315,8 @@ int main()
         skip_by_display = 0;
         skip_by_all_neighbors = 0;
         skip_by_out_of_screen = 0;
+
+        display_block_count = 0;
     }
 
     return 0;

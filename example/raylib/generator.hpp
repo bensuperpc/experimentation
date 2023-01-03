@@ -21,6 +21,8 @@
 
 // Cube lib
 #include "block.hpp"
+#include "chunk.hpp"
+#include "optimizer.hpp"
 
 class generator
 {
@@ -54,6 +56,156 @@ class generator
         [[nodiscard]] uint32_t get_seed() const { return seed; }
 
         template<typename T = int>
+        void generate_2d_heightmap(std::vector<uint32_t>& heightmap,
+                                   const T begin_x,
+                                   const T begin_y,
+                                   const T begin_z,
+                                   const uint32_t size_x,
+                                   const uint32_t size_y,
+                                   const uint32_t size_z)
+        {
+            constexpr bool debug = false;
+
+            if (heightmap.size() < size_x * size_z) {
+                std::cout << "Heightmap size is not equal or bigger than size_x * size_z" << std::endl;
+                exit(1);
+            }
+
+            const T end_x = static_cast<T>(begin_x + size_x);
+            const T end_y = static_cast<T>(begin_y + size_y);
+            const T end_z = static_cast<T>(begin_z + size_z);
+
+            if constexpr (debug) {
+                std::cout << "Generating:" << std::endl;
+                std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
+                std::cout << "To (xyz): " << end_x << ", " << end_y << ", " << end_z << std::endl;
+                std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
+
+                std::cout << "Generating 2D noise..." << std::endl;
+            }
+
+#pragma omp parallel for collapse(2) schedule(auto)
+            for (uint32_t x = 0; x < size_x; x++) {
+                for (uint32_t z = 0; z < size_z; z++) {
+                    // Calculate real x and z from begin_x and begin_z
+                    const int real_x = x + begin_x;
+                    const int real_z = z + begin_z;
+
+                    const uint32_t value_int = static_cast<uint32_t>(
+                        perlin.octave2D_01(real_x / 256.0, real_z / 256.0, octaves, persistence) * lacunarity);
+
+                    if (debug) {
+                        std::cout << "x: " << x << ", z: " << z << " index: " << z * size_z + x
+                                  << ", value: " << static_cast<int>(value_int) << std::endl;
+                    }
+                    heightmap[z * size_x + x] = value_int;
+                }
+            }
+
+            if constexpr (debug) {
+                // cout max and min
+                auto minmax = std::minmax_element(heightmap.begin(), heightmap.end());
+                std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
+                std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
+            }
+        }
+
+        template<typename T = int>
+        void generate_3d_heightmap(std::vector<uint32_t>& heightmap,
+                                   const T begin_x,
+                                   const T begin_y,
+                                   const T begin_z,
+                                   const uint32_t size_x,
+                                   const uint32_t size_y,
+                                   const uint32_t size_z)
+        {
+            constexpr bool debug = false;
+
+            if (heightmap.size() < size_x * size_y * size_z) {
+                std::cout << "Heightmap size is not equal or bigger than size_x * size_y * size_z!" << std::endl;
+                exit(1);
+            }
+
+            const T end_x = static_cast<T>(begin_x + size_x);
+            const T end_y = static_cast<T>(begin_y + size_y);
+            const T end_z = static_cast<T>(begin_z + size_z);
+
+            if constexpr (debug) {
+                std::cout << "Generating:" << std::endl;
+                std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
+                std::cout << "To (xyz): " << end_x << ", " << end_y << ", " << end_z << std::endl;
+                std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
+
+                std::cout << "Generating 3D noise..." << std::endl;
+            }
+
+#pragma omp parallel for collapse(3) schedule(auto)
+            for (uint32_t x = 0; x < size_x; x++) {
+                for (uint32_t z = 0; z < size_z; z++) {
+                    for (uint32_t y = 0; y < size_z; y++) {
+                        // Calculate real x and z from begin_x and begin_z
+                        const int real_x = x + begin_x;
+                        const int real_z = z + begin_z;
+                        const int real_y = y + begin_y;
+
+                        const uint32_t value_int = static_cast<uint32_t>(
+                            perlin.octave3D_01(real_x / 256.0, real_z / 256.0, real_y / 256.0, octaves, persistence)
+                            * lacunarity);
+
+                        if (debug) {
+                            std::cout << "x: " << x << ", y: " << y << ", z: " << z
+                                      << " index: " << z * size_x + y * size_x * size_z + x
+                                      << ", value: " << static_cast<int>(value_int) << std::endl;
+                        }
+                        heightmap[z * size_x + y * size_x * size_z + x] = value_int;
+                    }
+                }
+            }
+        }
+
+        void generate_word(std::vector<chunk>& chunks,
+                           const uint32_t size_x,
+                           const uint32_t size_y,
+                           const uint32_t size_z)
+        {
+            if (size_x % 16 != 0 || size_y % 64 != 0 || size_z % 16 != 0) {
+                std::cout << "Size_x, size_y and size_z must be a multiple of 16!" << std::endl;
+                exit(1);
+            }
+
+            if (chunks.size() < size_x * size_y * size_z) {
+                std::cout << "Chunks size is not equal or bigger than size_x * size_y * size_z!" << std::endl;
+                exit(1);
+            }
+
+            // Generate each 16x64x16 chunk
+            for (uint32_t x = 0; x < size_x; x++) {
+                for (uint32_t z = 0; z < size_z; z++) {
+                    for (uint32_t y = 0; y < size_y; y++) {
+                        std::vector<uint32_t> heightmap(chunk::chunk_size_x * chunk::chunk_size_z);
+                        generate_2d_heightmap(heightmap,
+                                              x * chunk::chunk_size_x,
+                                              y * chunk::chunk_size_y,
+                                              z * chunk::chunk_size_z,
+                                              chunk::chunk_size_x,
+                                              chunk::chunk_size_y,
+                                              chunk::chunk_size_z);
+                        std::vector<block> blocks(chunk::chunk_size_x * chunk::chunk_size_y * chunk::chunk_size_z);
+                        // TODO: Add for negative values
+                        generate(blocks,
+                                 x * chunk::chunk_size_x,
+                                 y * chunk::chunk_size_y,
+                                 z * chunk::chunk_size_z,
+                                 chunk::chunk_size_x,
+                                 chunk::chunk_size_y,
+                                 chunk::chunk_size_z);
+                        chunks[z * size_x + y * size_x * size_z + x].set_blocks(blocks);
+                    }
+                }
+            }
+        }
+
+        template<typename T = int>
         void generate(std::vector<block>& blocks,
                       const T begin_x,
                       const T begin_y,
@@ -68,41 +220,9 @@ class generator
             const T end_y = static_cast<T>(begin_y + size_y);
             const T end_z = static_cast<T>(begin_z + size_z);
 
-            if constexpr (debug) {
-                std::cout << "Generating:" << std::endl;
-                std::cout << "From (xyz): " << begin_x << ", " << begin_y << ", " << begin_z << std::endl;
-                std::cout << "To (xyz): " << end_x << ", " << end_y << ", " << end_z << std::endl;
-                std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
+            std::vector<uint32_t> heightmap(size_x * size_z);
 
-                std::cout << "Generating noise..." << std::endl;
-            }
-            // Generate noise 2D noise map (0-255)
-            std::vector<unsigned char> v(size_x * size_z, 0);
-
-#pragma omp parallel for collapse(2) schedule(auto)
-            for (uint32_t x = 0; x < size_x; x++) {
-                for (uint32_t z = 0; z < size_z; z++) {
-                    // Calculate real x and z from begin_x and begin_z
-                    const int real_x = x + begin_x;
-                    const int real_z = z + begin_z;
-
-                    const uint8_t value_int =
-                        static_cast<uint8_t>(perlin.octave2D_01(real_x / 256.0, real_z / 256.0, 16, 0.2) * 255.0);
-
-                    if (debug) {
-                        std::cout << "x: " << x << ", z: " << z << " index: " << z * size_z + x
-                                  << ", value: " << static_cast<int>(value_int) << std::endl;
-                    }
-                    v[z * size_x + x] = value_int;
-                }
-            }
-
-            if constexpr (debug) {
-                // cout max and min
-                auto minmax = std::minmax_element(v.begin(), v.end());
-                std::cout << "min: " << static_cast<int>(*minmax.first) << std::endl;
-                std::cout << "max: " << static_cast<int>(*minmax.second) << std::endl;
-            }
+            generate_2d_heightmap(heightmap, begin_x, begin_y, begin_z, size_x, size_y, size_z);
 
             // Insert blocks if needed to make sure the vector is the correct size
             if (blocks.size() < size_x * size_y * size_z) {
@@ -129,7 +249,7 @@ class generator
                     }
                     */
 
-                    unsigned char noise_value = v[vec_index] / 8;
+                    uint32_t noise_value = heightmap[vec_index] / 8;
 
                     for (uint32_t y = 0; y < size_y; y++) {
                         // Calculate real y from begin_y
@@ -165,12 +285,19 @@ class generator
                     }
                 }
             }
+            // Optimize blocks
+            opt.optimize(blocks, begin_x, begin_y, begin_z, size_x, size_y, size_z);
         }
 
     private:
         // default seed
         siv::PerlinNoise::seed_type seed = 2647393077u;
         siv::PerlinNoise perlin {seed};
+        int32_t octaves = 16;
+        double persistence = 0.2f;
+        double lacunarity = 255.0f;
+
+        optimizer opt;
 };
 
 #endif  // CUBE_GENERATOR_HPP
