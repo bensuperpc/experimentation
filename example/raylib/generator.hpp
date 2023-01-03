@@ -162,26 +162,20 @@ class generator
                 }
             }
         }
-
         void generate_word(std::vector<chunk>& chunks,
-                           const uint32_t size_x,
-                           const uint32_t size_y,
-                           const uint32_t size_z)
+                           const uint32_t chunk_x,
+                           const uint32_t chunk_y,
+                           const uint32_t chunk_z)
         {
-            if (size_x % 16 != 0 || size_y % 64 != 0 || size_z % 16 != 0) {
-                std::cout << "Size_x, size_y and size_z must be a multiple of 16!" << std::endl;
-                exit(1);
-            }
-
-            if (chunks.size() < size_x * size_y * size_z) {
-                std::cout << "Chunks size is not equal or bigger than size_x * size_y * size_z!" << std::endl;
+            if (chunks.size() < chunk_x * chunk_y * chunk_z) {
+                std::cout << "Chunks size is not equal or bigger than chunk_x * chunk_y * chunk_z!" << std::endl;
                 exit(1);
             }
 
             // Generate each 16x64x16 chunk
-            for (uint32_t x = 0; x < size_x; x++) {
-                for (uint32_t z = 0; z < size_z; z++) {
-                    for (uint32_t y = 0; y < size_y; y++) {
+            for (uint32_t x = 0; x < chunk_x; x++) {
+                for (uint32_t z = 0; z < chunk_z; z++) {
+                    for (uint32_t y = 0; y < chunk_y; y++) {
                         std::vector<uint32_t> heightmap(chunk::chunk_size_x * chunk::chunk_size_z);
                         generate_2d_heightmap(heightmap,
                                               x * chunk::chunk_size_x,
@@ -199,7 +193,10 @@ class generator
                                  chunk::chunk_size_x,
                                  chunk::chunk_size_y,
                                  chunk::chunk_size_z);
-                        chunks[z * size_x + y * size_x * size_z + x].set_blocks(blocks);
+                        chunk & current_chunk = chunks[z * chunk_x + y * chunk_x * chunk_z + x];
+                        current_chunk.set_blocks(blocks);
+                        // TODO: Add for negative values
+                        current_chunk.set_chuck_pos(x, y, z);
                     }
                 }
             }

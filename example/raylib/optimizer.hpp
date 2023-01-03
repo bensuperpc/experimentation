@@ -53,7 +53,7 @@ class optimizer
                 std::cout << "Size (xyz): " << size_x << ", " << size_y << ", " << size_z << std::endl;
             }
 
-            #pragma omp parallel for schedule(auto)
+#pragma omp parallel for schedule(auto)
             for (size_t i = 0; i < blocks.size(); i++) {
                 block& current_cube = blocks[i];
 
@@ -258,6 +258,12 @@ class optimizer
                 } else {
                     current_cube.is_visible = true;
                 }
+
+                /*
+                if (neighbors == 6) {
+                    current_cube.is_visible = false;
+                }
+                */
 
                 // for debug
                 current_cube.neighbors = neighbors;

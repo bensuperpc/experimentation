@@ -18,22 +18,23 @@
 
 // Cube lib
 #include "block.hpp"
-#include "world.hpp"
+#include "chunk.hpp"
 #include "generator.hpp"
 #include "optimizer.hpp"
+#include "world.hpp"
 
 int main()
 {
     std::ios_base::sync_with_stdio(false);
 
     world current_world;
-    optimizer current_optimizer;
 
     const int screen_width = 1920;
     const int screen_height = 1080;
     const int target_fps = 30;
 
-    bool show_grid = true;
+    bool show_block_grid = true;
+    bool show_chunk_grid = true;
     bool show_plain_block = true;
 
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
@@ -51,6 +52,14 @@ int main()
     std::cout << "seed: " << seed << std::endl;
 
     generator current_generator(seed);
+    generator new_generator(seed);
+
+    uint32_t chunk_x = 4;
+    uint32_t chunk_y = 1;
+    uint32_t chunk_z = 4;
+    uint32_t chunk_size = chunk_x * chunk_y * chunk_z;
+    std::vector<chunk> chunks = std::vector<chunk>(chunk_size);
+    new_generator.generate_word(chunks, chunk_x, chunk_y, chunk_z);
 
     uint32_t vecX = 64;
     uint32_t vecY = 32;
@@ -116,16 +125,20 @@ int main()
         if (IsKeyPressed(KEY_R)) {
             decltype(seed) seed = std::random_device()();
             std::cout << "seed: " << seed << std::endl;
-            current_generator.reseed(seed);
-            current_generator.generate(blocks, -8, -8, -8, vecX, vecY, vecZ);
+            new_generator.reseed(seed);
+            new_generator.generate_word(chunks, chunk_x, chunk_y, chunk_z);
         }
 
         if (IsKeyPressed(KEY_G)) {
-            show_grid = !show_grid;
+            show_block_grid = !show_block_grid;
         }
 
-        if (IsKeyPressed(KEY_H)) {
+        if (IsKeyPressed(KEY_P)) {
             show_plain_block = !show_plain_block;
+        }
+
+        if (IsKeyPressed(KEY_C)) {
+            show_chunk_grid = !show_chunk_grid;
         }
 
         if (IsKeyPressed(KEY_F5)) {
@@ -147,22 +160,25 @@ int main()
         }
         */
 
-// TODO: optimize to check only the blocks around the player
+        // TODO: optimize to check only the blocks around the player
+        for (size_t ci = 0; ci < chunks.size(); ci++) {
+            auto& current_chunk = chunks[ci];
+            auto& blocks = current_chunk.get_blocks();
 #pragma omp parallel for schedule(auto)
-        for (size_t i = 0; i < blocks.size(); i++) {
-            block& current_cube = blocks[i];
-            if (current_cube.is_visible && current_cube.block_type != block_type::air) {
-                raylib::BoundingBox box = current_cube.get_bounding_box();
+            for (size_t bi = 0; bi < current_chunk.size(); bi++) {
+                block& current_block = blocks[bi];
+                if (current_block.is_visible && current_block.block_type != block_type::air) {
+                    raylib::BoundingBox box = current_block.get_bounding_box();
 
-                RayCollision box_hit_info = GetRayCollisionBox(ray, box);
+                    RayCollision box_hit_info = GetRayCollisionBox(ray, box);
 
-                if (box_hit_info.hit) {
+                    if (box_hit_info.hit) {
 #pragma omp critical
-                    collisions.push_back({&current_cube, box_hit_info});
+                        collisions.push_back({&current_block, box_hit_info});
+                    }
                 }
             }
         }
-
         if (!collisions.empty()) {
             std::sort(collisions.begin(),
                       collisions.end(),
@@ -203,54 +219,41 @@ int main()
             window.ClearBackground(RAYWHITE);
 
             camera.BeginMode();
-#pragma omp parallel for schedule(auto) num_threads(1)
-            for (size_t i = 0; i < blocks.size(); i++) {
-                block& current_cube = blocks[i];
+            for (size_t ci = 0; ci < chunks.size(); ci++) {
+                auto& current_chunk = chunks[ci];
+                auto& blocks = current_chunk.get_blocks();
 
-                // Draw only blocks if is_visible is true
-                if ((current_cube.is_visible == false) || (current_cube.block_type == block_type::air)) {
-                    skip_by_display++;
-                    continue;
+                for (size_t bi = 0; bi < current_chunk.size(); bi++) {
+                    block& current_block = blocks[bi];
+
+                    // Draw only blocks if is_visible is true
+                    if ((current_block.is_visible == false) || (current_block.block_type == block_type::air)) {
+                        skip_by_display++;
+                        continue;
+                    }
+
+                    // If block is not visible on screen, skip it
+                    const raylib::Vector2 blcok_screen_pos = camera.GetWorldToScreen(current_block.get_center());
+                    if (blcok_screen_pos.x < 0 || blcok_screen_pos.x > GetScreenWidth() || blcok_screen_pos.y < 0
+                        || blcok_screen_pos.y > GetScreenHeight())
+                    {
+                        skip_by_out_of_screen++;
+                        continue;
+                    }
+
+                    if (show_plain_block) {
+                        current_block.draw();
+                        display_block_count++;
+                    }
+                    if (show_block_grid) {
+                        current_block.draw_box();
+                    }
                 }
-
-                /*
-                // Calculate block position
-                int x = i % vecX;
-                int y = (i / vecX) % vecY;
-                int z = (i / (vecX * vecY)) % vecZ;
-
-                // Calculate block position in world
-                float x_pos = x * cube_size;
-                float y_pos = y * cube_size;
-                float z_pos = z * cube_size;
-                */
-
-                // Draw only surfaces
-                // if (blocks[std::min(static_cast<int32_t>(blocks.size()) - 1, static_cast<int32_t>(i) +
-                // 1)].is_visible) {
-                //     skip_by_surface_only++;
-                //     continue;
-                // }
-
-                // If block is not visible on screen, skip it
-                const raylib::Vector2 cube_screen_pos = camera.GetWorldToScreen(current_cube.get_center());
-                if (cube_screen_pos.x < 0 || cube_screen_pos.x > GetScreenWidth() || cube_screen_pos.y < 0
-                    || cube_screen_pos.y > GetScreenHeight())
-                {
-                    skip_by_out_of_screen++;
-                    continue;
-                }
-                if (show_plain_block) {
-#pragma omp critical
-                    current_cube.draw();
-                    display_block_count++;
-                }
-                if (show_grid) {
-#pragma omp critical
-                    current_cube.draw_box();
+                if (show_chunk_grid) {
+                    current_chunk.draw_wireframe();
                 }
             }
-            if (show_grid) {
+            if (show_block_grid) {
                 DrawGrid(256, 1.0f);
             }
 
@@ -288,7 +291,11 @@ int main()
             DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 110, 20, raylib::Color::Black());
 
             // Draw statistics
-            DrawText(("Blocks on screen: " + std::to_string(display_block_count)).c_str(), 10, 150, 20, raylib::Color::Black());
+            DrawText(("Blocks on screen: " + std::to_string(display_block_count)).c_str(),
+                     10,
+                     150,
+                     20,
+                     raylib::Color::Black());
 
             // Draw crosshair in the middle of the screen
             DrawLine(
@@ -302,12 +309,12 @@ int main()
         std::cout << "skip_by_all_neighbors: " << skip_by_all_neighbors << std::endl;
         std::cout << "skip_by_out_of_screen: " << skip_by_out_of_screen << std::endl;
         std::cout << "skip_by_surface_only: " << skip_by_surface_only << std::endl;
-        size_t total_skipped = skip_by_display + skip_by_all_neighbors + skip_by_out_of_screen + skip_by_surface_only;
-        std::cout << "total skipped: " << total_skipped << std::endl;
-        std::cout << "total blocks: " << blocks.size() << std::endl;
-        std::cout << "total blocks displayed: " << blocks.size() - total_skipped;
-        std::cout << " ("
-                  << static_cast<float>(blocks.size() - total_skipped) / static_cast<float>(blocks.size()) * 100.0f
+        size_t total_skipped = skip_by_display + skip_by_all_neighbors + skip_by_out_of_screen +
+        skip_by_surface_only; std::cout << "total skipped: " << total_skipped << std::endl; std::cout << "total
+        blocks: " << blocks.size() << std::endl; std::cout << "total blocks displayed: " << blocks.size() -
+        total_skipped; std::cout << " ("
+                  << static_cast<float>(blocks.size() - total_skipped) / static_cast<float>(blocks.size()) *
+        100.0f
                   << "%)" << std::endl;
         std::cout << std::endl;
         */

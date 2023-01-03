@@ -32,8 +32,7 @@ size_t constexpr leaves = 7;
 
 std::string get_name(size_t block_type)
 {
-    switch (block_type)
-    {
+    switch (block_type) {
         case air:
             return "air";
         case grass:
@@ -57,47 +56,33 @@ std::string get_name(size_t block_type)
 
 }  // namespace block_type
 
-
 struct Vector3i
 {
-    int x;
-    int y;
-    int z;
+        int x;
+        int y;
+        int z;
 };
 
 struct Vector2i
 {
-    int x;
-    int y;
+        int x;
+        int y;
 };
 
 class block
 {
     public:
-        explicit block(int x,
-                       int y,
-                       int z,
-                       float size_x,
-                       float size_y,
-                       float size_z,
-                       Color color,
-                       size_t block_type,
-                       bool is_visible)
+        explicit block(int x, int y, int z, Color color, size_t block_type, bool is_visible)
             : x(x)
             , y(y)
             , z(z)
-            , size_x(size_x)
-            , size_y(size_y)
-            , size_z(size_z)
             , color(color)
             , block_type(block_type)
             , is_visible(is_visible)
         {
         }
 
-        block()
-        {
-        }
+        block() {}
 
         ~block() {}
 
@@ -118,19 +103,26 @@ class block
         // TODO: Move in Drawer class ?
         void draw_texture() const
         {
-            DrawCubeTexture(*texture, raylib::Vector3(x * size_x, y * size_y, z * size_z), size_x, size_y, size_z, raylib::Color::White());
+            DrawCubeTexture(*texture,
+                            raylib::Vector3(x * size_x, y * size_y, z * size_z),
+                            size_x,
+                            size_y,
+                            size_z,
+                            raylib::Color::White());
         }
 
         // TODO: Move in Drawer class ?
         void draw_wireframe() const
         {
-            DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
+            DrawCubeWiresV(
+                raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
         }
 
         // TODO: Move in Drawer class ?
         void draw_box() const
         {
-            DrawCubeWiresV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
+            DrawCubeWiresV(
+                raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
         }
 
         [[nodiscard]] raylib::Vector3 get_size() const { return {size_x, size_y, size_z}; }
@@ -146,9 +138,9 @@ class block
         int y = 0;
         int z = 0;
 
-        float size_x = 2.0f;
-        float size_y = 2.0f;
-        float size_z = 2.0f;
+        static constexpr float size_x = 2.0f;
+        static constexpr float size_y = 2.0f;
+        static constexpr float size_z = 2.0f;
 
         Color color = raylib::Color::Gray();
         bool is_visible = true;
