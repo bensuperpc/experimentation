@@ -184,7 +184,8 @@ class generator
                                               chunk::chunk_size_x,
                                               chunk::chunk_size_y,
                                               chunk::chunk_size_z);
-                        std::vector<block> blocks = std::vector<block>(chunk::chunk_size_x * chunk::chunk_size_y * chunk::chunk_size_z, block());
+                        std::vector<block> blocks = std::vector<block>(
+                            chunk::chunk_size_x * chunk::chunk_size_y * chunk::chunk_size_z, block());
                         // TODO: Add for negative values
                         generate(blocks,
                                  x * chunk::chunk_size_x,
@@ -193,7 +194,7 @@ class generator
                                  chunk::chunk_size_x,
                                  chunk::chunk_size_y,
                                  chunk::chunk_size_z);
-                        chunk & current_chunk = chunks[z * chunk_x + y * chunk_x * chunk_z + x];
+                        chunk& current_chunk = chunks[z * chunk_x + y * chunk_x * chunk_z + x];
                         current_chunk.set_blocks(blocks);
                         // TODO: Add for negative values
                         current_chunk.set_chuck_pos(x, y, z);

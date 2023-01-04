@@ -67,7 +67,12 @@ class chunk
         //[[nodiscard]] block& get_block(int x, int y, int z) { return blocks[z * chunk_x + y * chunk_x * chunk_z + x];
         //}
 
-        inline std::vector<block>::size_type size() const { return blocks.size(); }
+        [[nodiscard]] raylib::Vector3 get_size() const
+        {
+            return {chunk_size_x * block::size_x, chunk_size_y * block::size_y, chunk_size_z * block::size_z};
+        }
+
+        [[nodiscard]] std::vector<block>::size_type size() const { return blocks.size(); }
 
         static constexpr int chunk_size_x = 16;
         static constexpr int chunk_size_y = 64;

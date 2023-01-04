@@ -18,6 +18,7 @@
 
 // Cube lib
 #include "block.hpp"
+#include "block_utils.hpp"
 #include "chunk.hpp"
 #include "generator.hpp"
 #include "optimizer.hpp"
@@ -62,10 +63,8 @@ int main()
     new_generator.generate_word(chunks, chunk_x, chunk_y, chunk_z);
 
     raylib::Camera camera(
-        raylib::Vector3(static_cast<float>(64 *  2.0f / 4),
-                        (64 / 2) *  2.0f + 24.0f,
-                        static_cast<float>(64 *  2.0f / 4)),
-        raylib::Vector3(static_cast<float>(64 *  2.0f / 2), 0.0f, static_cast<float>(64 *  2.0f / 2)),
+        raylib::Vector3(static_cast<float>(64 * 2.0f / 4), (64 / 2) * 2.0f + 24.0f, static_cast<float>(64 * 2.0f / 4)),
+        raylib::Vector3(static_cast<float>(64 * 2.0f / 2), 0.0f, static_cast<float>(64 * 2.0f / 2)),
         raylib::Vector3(0.0f, 1.0f, 0.0f),
         60.0f,
         CAMERA_PERSPECTIVE);
@@ -81,7 +80,6 @@ int main()
 
     // Block info
     Vector3i block_info_pos = {0, 0, 0};
-    Vector3 block_info_real_pos = {0, 0, 0};
     size_t block_info_index = 0;
     size_t block_info_neighbour = 0;
     size_t block_info_edges = 0;
@@ -154,10 +152,9 @@ int main()
             for (size_t bi = 0; bi < current_chunk.size(); bi++) {
                 block& current_block = blocks[bi];
                 if (current_block.is_visible && current_block.block_type != block_type::air) {
-                    raylib::BoundingBox box = current_block.get_bounding_box();
+                    raylib::BoundingBox box = block_utils::get_bounding_box(current_block, cube_size);
 
                     RayCollision box_hit_info = GetRayCollisionBox(ray, box);
-
                     if (box_hit_info.hit) {
 #pragma omp critical
                         collisions.push_back({&current_block, box_hit_info});
@@ -173,13 +170,11 @@ int main()
             closest_block = collisions[0].first;
             closest_block->color = raylib::Color::Red();
             block_info_pos = closest_block->get_position();
-            block_info_real_pos = closest_block->get_real_position();
             block_info_index = closest_block->x + closest_block->z * 16 + closest_block->y * 16 * 16;
             block_info_neighbour = closest_block->neighbors;
             block_info_edges = closest_block->edges;
         } else {
             block_info_pos = {0, 0, 0};
-            block_info_real_pos = {0.0, 0.0, 0.0};
             block_info_index = 0;
             block_info_neighbour = 0;
             block_info_edges = 0;
@@ -199,11 +194,12 @@ int main()
 
             camera.BeginMode();
             for (size_t ci = 0; ci < chunks.size(); ci++) {
-                auto& current_chunk = chunks[ci];
-                auto& blocks = current_chunk.get_blocks();
+                chunk& current_chunk = chunks[ci];
+                std::vector<block>& blocks = current_chunk.get_blocks();
 
                 for (size_t bi = 0; bi < current_chunk.size(); bi++) {
                     block& current_block = blocks[bi];
+                    Vector3&& real_block_pos = block_utils::get_real_position(current_block, cube_size);
 
                     // Draw only blocks if is_visible is true
                     if ((current_block.is_visible == false) || (current_block.block_type == block_type::air)) {
@@ -212,27 +208,29 @@ int main()
                     }
 
                     // If block is not visible on screen, skip it
-                    const raylib::Vector2 blcok_screen_pos = camera.GetWorldToScreen(current_block.get_center());
-                    if (blcok_screen_pos.x < 0 || blcok_screen_pos.x > GetScreenWidth() || blcok_screen_pos.y < 0
-                        || blcok_screen_pos.y > GetScreenHeight())
+                    const raylib::Vector2&& block_screen_pos =
+                        camera.GetWorldToScreen(block_utils::get_center(current_block, cube_size));
+                    if (block_screen_pos.x < 0.0 || block_screen_pos.x > static_cast<float>(GetScreenWidth())
+                        || block_screen_pos.y < 0.0 || block_screen_pos.y > static_cast<float>(GetScreenHeight()))
                     {
                         skip_by_out_of_screen++;
                         continue;
                     }
+                    std::cout << "block_screen_pos: x: " << block_screen_pos.x << ", y: " << block_screen_pos.y
+                              << std::endl;
 
                     if (show_plain_block) {
-                        //current_block.draw();
-                        DrawCubeV(current_block.get_real_position(), current_block.get_size(), current_block.color);
+                        DrawCubeV(real_block_pos, current_block.get_size(), current_block.color);
                         display_block_count++;
                     }
                     if (show_block_grid) {
-                        //current_block.draw_box();
-                        DrawCubeWiresV(current_block.get_real_position(), current_block.get_size(), BLACK);
+                        DrawCubeWiresV(real_block_pos, current_block.get_size(), BLACK);
                     }
                 }
                 if (show_chunk_grid) {
                     // FIx bug: draw chunk grid
                     // current_chunk.draw_box();
+                    // DrawCubeWiresV(current_chunk.get_real_position(), current_chunk.get_size(), BLACK);
                 }
             }
             if (show_block_grid) {
@@ -261,13 +259,6 @@ int main()
                 + std::to_string(block_info_pos.y) + ", " + std::to_string(block_info_pos.z);
             DrawText(block_info.c_str(), 10, 30, 20, raylib::Color::Black());
             DrawText(("Index: " + std::to_string(block_info_index)).c_str(), 10, 50, 20, raylib::Color::Black());
-            DrawText(("Real XYZ: " + std::to_string(block_info_real_pos.x) + ", "
-                      + std::to_string(block_info_real_pos.y) + ", " + std::to_string(block_info_real_pos.z))
-                         .c_str(),
-                     10,
-                     70,
-                     20,
-                     raylib::Color::Black());
             DrawText(
                 ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 90, 20, raylib::Color::Black());
             DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 110, 20, raylib::Color::Black());

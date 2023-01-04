@@ -110,10 +110,9 @@ int main()
                     }
                     auto end = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double, std::milli> elapsed = end - start;
-                    std::cout << "DrawCubeWires elapsed: " << elapsed.count() << " ms" << " " << x / elapsed.count() <<
-                    " cubes/ms" << std::endl;
+                    std::cout << "DrawCubeWires elapsed: " << elapsed.count() << " ms"
+                              << " " << x / elapsed.count() << " cubes/ms" << std::endl;
                 } else if (bench_mode == 3) {
-
                     // Benchmark DrawTextureEx
                     auto start = std::chrono::high_resolution_clock::now();
                     for (size_t i = 0; i < x; i++) {
@@ -125,7 +124,6 @@ int main()
                     std::cout << "DrawTextureEx elapsed: " << elapsed.count() << " ms"
                               << " " << x / elapsed.count() << " texture/ms" << std::endl;
                 } else if (bench_mode == 4) {
-                    
                     // Benchmark Draw Model
                     auto start = std::chrono::high_resolution_clock::now();
                     for (size_t i = 0; i < x; i++) {
@@ -135,7 +133,6 @@ int main()
                     std::chrono::duration<double, std::milli> elapsed = end - start;
                     std::cout << "DrawModel elapsed: " << elapsed.count() << " ms"
                               << " " << x / elapsed.count() << " models/ms" << std::endl;
-                    
                 }
 
                 std::cout << std::endl << std::endl;
