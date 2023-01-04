@@ -172,13 +172,6 @@ int main()
             closest_collision = collisions[0].second;
             closest_block = collisions[0].first;
             closest_block->color = raylib::Color::Red();
-
-            // Print block position
-            /*
-            std::cout << "Block position: " << closest_block->x << ", " << closest_block->y << ", " <<
-            closest_block->z
-                      << std::endl;
-                      */
             block_info_pos = closest_block->get_position();
             block_info_real_pos = closest_block->get_real_position();
             block_info_index = closest_block->x + closest_block->z * 16 + closest_block->y * 16 * 16;
@@ -228,16 +221,18 @@ int main()
                     }
 
                     if (show_plain_block) {
-                        current_block.draw();
+                        //current_block.draw();
+                        DrawCubeV(current_block.get_real_position(), current_block.get_size(), current_block.color);
                         display_block_count++;
                     }
                     if (show_block_grid) {
-                        current_block.draw_box();
+                        //current_block.draw_box();
+                        DrawCubeWiresV(current_block.get_real_position(), current_block.get_size(), BLACK);
                     }
                 }
                 if (show_chunk_grid) {
                     // FIx bug: draw chunk grid
-                    current_chunk.draw_box();
+                    // current_chunk.draw_box();
                 }
             }
             if (show_block_grid) {
