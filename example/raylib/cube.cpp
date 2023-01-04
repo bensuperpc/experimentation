@@ -47,7 +47,9 @@ int main()
     SetTextureFilter(textureGrid, TEXTURE_FILTER_ANISOTROPIC_16X);
     SetTextureWrap(textureGrid, TEXTURE_WRAP_CLAMP);
 
-    const float cube_size = 2.0f;
+    const float block_size = 2.0f;
+
+    const Vector3 block_size_vec = {block_size, block_size, block_size};
 
     siv::PerlinNoise::seed_type seed = 2510586073u;
     std::cout << "seed: " << seed << std::endl;
@@ -152,7 +154,7 @@ int main()
             for (size_t bi = 0; bi < current_chunk.size(); bi++) {
                 block& current_block = blocks[bi];
                 if (current_block.is_visible && current_block.block_type != block_type::air) {
-                    raylib::BoundingBox box = block_utils::get_bounding_box(current_block, cube_size);
+                    raylib::BoundingBox box = block_utils::get_bounding_box(current_block, block_size);
 
                     RayCollision box_hit_info = GetRayCollisionBox(ray, box);
                     if (box_hit_info.hit) {
@@ -199,7 +201,7 @@ int main()
 
                 for (size_t bi = 0; bi < current_chunk.size(); bi++) {
                     block& current_block = blocks[bi];
-                    Vector3&& real_block_pos = block_utils::get_real_position(current_block, cube_size);
+                    Vector3&& real_block_pos = block_utils::get_real_position(current_block, block_size);
 
                     // Draw only blocks if is_visible is true
                     if ((current_block.is_visible == false) || (current_block.block_type == block_type::air)) {
@@ -209,7 +211,7 @@ int main()
 
                     // If block is not visible on screen, skip it
                     const raylib::Vector2&& block_screen_pos =
-                        camera.GetWorldToScreen(block_utils::get_center(current_block, cube_size));
+                        camera.GetWorldToScreen(block_utils::get_center(current_block, block_size));
                     if (block_screen_pos.x < 0.0 || block_screen_pos.x > static_cast<float>(GetScreenWidth())
                         || block_screen_pos.y < 0.0 || block_screen_pos.y > static_cast<float>(GetScreenHeight()))
                     {
@@ -220,11 +222,11 @@ int main()
                               << std::endl;
 
                     if (show_plain_block) {
-                        DrawCubeV(real_block_pos, current_block.get_size(), current_block.color);
+                        DrawCubeV(real_block_pos, block_size_vec, current_block.color);
                         display_block_count++;
                     }
                     if (show_block_grid) {
-                        DrawCubeWiresV(real_block_pos, current_block.get_size(), BLACK);
+                        DrawCubeWiresV(real_block_pos, block_size_vec, BLACK);
                     }
                 }
                 if (show_chunk_grid) {

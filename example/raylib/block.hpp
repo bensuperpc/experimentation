@@ -86,18 +86,12 @@ class block
 
         ~block() {}
 
-        [[nodiscard]] raylib::Vector3 get_size() const { return {size_x, size_y, size_z}; }
-
         [[nodiscard]] Vector3i get_position() const { return {x, y, z}; }
 
         // Block coordinates
         int x = 0;
         int y = 0;
         int z = 0;
-
-        static constexpr float size_x = 2.0f;
-        static constexpr float size_y = 2.0f;
-        static constexpr float size_z = 2.0f;
 
         Color color = raylib::Color::Gray();
         bool is_visible = true;

@@ -37,6 +37,10 @@ class chunk
         ~chunk() {}
 
         [[nodiscard]] raylib::Vector3 get_position() const { return {chunk_x, chunk_y, chunk_z}; }
+        [[nodiscard]] std::vector<block>& get_blocks() { return blocks; }
+        void set_blocks(std::vector<block>& blocks) { this->blocks = std::move(blocks); }
+
+        /*
         [[nodiscard]] raylib::Vector3 get_real_position() const
         {
             return {chunk_x * chunk_size_x * block::size_x,
@@ -44,8 +48,6 @@ class chunk
                     chunk_z * chunk_size_z * block::size_z};
         }
 
-        [[nodiscard]] std::vector<block>& get_blocks() { return blocks; }
-        void set_blocks(std::vector<block>& blocks) { this->blocks = blocks; }
 
         void draw_box() const
         {
@@ -58,7 +60,7 @@ class chunk
             raylib::Color color = raylib::Color::Green();
             DrawCubeWiresV(pos, size, color);
         }
-
+        
         //[[nodiscard]] block& get_block(int index) { return blocks[index]; }
         // void set_block(int chuck_index, block &b) { blocks[chuck_index] = b; }
 
@@ -71,6 +73,7 @@ class chunk
         {
             return {chunk_size_x * block::size_x, chunk_size_y * block::size_y, chunk_size_z * block::size_z};
         }
+        */
 
         [[nodiscard]] std::vector<block>::size_type size() const { return blocks.size(); }
 
