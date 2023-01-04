@@ -262,8 +262,8 @@ int main()
             DrawText(block_info.c_str(), 10, 30, 20, raylib::Color::Black());
             DrawText(("Index: " + std::to_string(block_info_index)).c_str(), 10, 50, 20, raylib::Color::Black());
             DrawText(
-                ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 90, 20, raylib::Color::Black());
-            DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 110, 20, raylib::Color::Black());
+                ("Neighbours: " + std::to_string(block_info_neighbour)).c_str(), 10, 70, 20, raylib::Color::Black());
+            DrawText(("Edges: " + std::to_string(block_info_edges)).c_str(), 10, 90, 20, raylib::Color::Black());
 
             // Draw statistics
             DrawText(("Blocks on screen: " + std::to_string(display_block_count)).c_str(),

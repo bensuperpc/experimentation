@@ -40,6 +40,7 @@ class chunk
         [[nodiscard]] std::vector<block>& get_blocks() { return blocks; }
         void set_blocks(std::vector<block>& blocks) { this->blocks = std::move(blocks); }
 
+
         /*
         [[nodiscard]] raylib::Vector3 get_real_position() const
         {
