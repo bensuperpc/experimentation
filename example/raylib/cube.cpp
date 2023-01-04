@@ -63,7 +63,7 @@ int main()
 
     raylib::Camera camera(
         raylib::Vector3(static_cast<float>(64 *  2.0f / 4),
-                        (64 / 2) *  2.0f + 24.0f,
+                        (64 / 2) *  2.0f,
                         static_cast<float>(64 *  2.0f / 4)),
         raylib::Vector3(static_cast<float>(64 *  2.0f / 2), 0.0f, static_cast<float>(64 *  2.0f / 2)),
         raylib::Vector3(0.0f, 1.0f, 0.0f),
@@ -219,25 +219,27 @@ int main()
                     }
 
                     // If block is not visible on screen, skip it
-                    const raylib::Vector2 blcok_screen_pos = camera.GetWorldToScreen(current_block.get_center());
-                    if (blcok_screen_pos.x < 0 || blcok_screen_pos.x > GetScreenWidth() || blcok_screen_pos.y < 0
-                        || blcok_screen_pos.y > GetScreenHeight())
+                    const raylib::Vector2 block_screen_pos = camera.GetWorldToScreen(current_block.get_center());
+                    if (block_screen_pos.x < 0 || block_screen_pos.x > GetScreenWidth() || block_screen_pos.y < 0
+                        || block_screen_pos.y > GetScreenHeight())
                     {
                         skip_by_out_of_screen++;
                         continue;
                     }
 
                     if (show_plain_block) {
-                        current_block.draw();
+                        //current_block.draw();
+                        DrawCubeV(current_block.get_real_position(), current_block.get_size(), current_block.color);
                         display_block_count++;
                     }
                     if (show_block_grid) {
-                        current_block.draw_box();
+                        DrawCubeWiresV(current_block.get_real_position(), current_block.get_size(), BLACK);
+                        //current_block.draw_box();
                     }
                 }
                 if (show_chunk_grid) {
                     // FIx bug: draw chunk grid
-                    current_chunk.draw_box();
+                    //current_chunk.draw_box();
                 }
             }
             if (show_block_grid) {

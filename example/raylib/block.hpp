@@ -88,46 +88,27 @@ class block
 
         [[nodiscard]] BoundingBox get_bounding_box() const
         {
-            raylib::Vector3 cube_begin = {x * size_x - size_x / 2, y * size_y - size_y / 2, z * size_z - size_z / 2};
-            raylib::Vector3 cube_end = {x * size_x + size_x / 2, y * size_y + size_y / 2, z * size_z + size_z / 2};
+            raylib::Vector3 cube_begin = get_real_position();
+            raylib::Vector3 cube_end = get_real_position();
+            cube_begin.x -= size_x / 2;
+            cube_begin.y -= size_y / 2;
+            cube_begin.z -= size_z / 2;
+            cube_end.x += size_x / 2;
+            cube_end.y += size_y / 2;
+            cube_end.z += size_z / 2;
             BoundingBox box = {cube_begin, cube_end};
             return box;
         }
 
-        // TODO: Move in Drawer class ?
-        void draw() const
-        {
-            DrawCubeV(raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, color);
-        }
-
-        // TODO: Move in Drawer class ?
-        void draw_texture() const
-        {
-            DrawCubeTexture(*texture,
-                            raylib::Vector3(x * size_x, y * size_y, z * size_z),
-                            size_x,
-                            size_y,
-                            size_z,
-                            raylib::Color::White());
-        }
-
-        // TODO: Move in Drawer class ?
-        void draw_wireframe() const
-        {
-            DrawCubeWiresV(
-                raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
-        }
-
-        // TODO: Move in Drawer class ?
-        void draw_box() const
-        {
-            DrawCubeWiresV(
-                raylib::Vector3(x * size_x, y * size_y, z * size_z), {size_x, size_y, size_z}, raylib::Color::Black());
-        }
-
         [[nodiscard]] raylib::Vector3 get_size() const { return {size_x, size_y, size_z}; }
 
-        [[nodiscard]] raylib::Vector3 get_center() const { return raylib::Vector3(x * size_x, y * size_y, z * size_z); }
+        [[nodiscard]] raylib::Vector3 get_center() const { 
+        Vector3 center = get_real_position();
+        center.x += size_x / 2;
+        center.y += size_y / 2;
+        center.z += size_z / 2;
+        return center;
+        }
 
         [[nodiscard]] raylib::Vector3 get_real_position() const { return {x * size_x, y * size_y, z * size_z}; }
 
