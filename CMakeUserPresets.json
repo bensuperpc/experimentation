@@ -15,27 +15,41 @@
       }
     },
     {
-      "name": "dev-unix",
-      "binaryDir": "${sourceDir}/build/dev-unix",
-      "inherits": ["dev-common", "ci-unix"],
+      "name": "dev-linux",
+      "binaryDir": "${sourceDir}/build/dev-linux",
+      "inherits": ["dev-common", "ci-linux"],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "dev-darwin",
+      "binaryDir": "${sourceDir}/build/dev-darwin",
+      "inherits": ["dev-common", "ci-darwin"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
       "name": "dev-win64",
       "binaryDir": "${sourceDir}/build/dev-win64",
-      "inherits": ["dev-common", "ci-win64"]
+      "inherits": ["dev-common", "ci-win64"],
+      "environment": {
+        "UseMultiToolTask": "true",
+        "EnforceProcessCountAcrossBuilds": "true"
+      }
     },
     {
       "name": "dev",
       "binaryDir": "${sourceDir}/build/dev",
-      "inherits": "dev-unix"
+      "inherits": "dev-linux"
     },
     {
       "name": "dev-coverage",
       "binaryDir": "${sourceDir}/build/coverage",
-      "inherits": ["dev-mode", "coverage-unix"]
+      "inherits": ["dev-mode", "coverage-linux"]
     }
   ],
   "buildPresets": [
@@ -55,7 +69,8 @@
         "outputOnFailure": true
       },
       "execution": {
-        "jobs": 16
+        "jobs": 16,
+        "noTestsAction": "error"
       }
     }
   ]

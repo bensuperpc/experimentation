@@ -7,11 +7,20 @@ project(
     VERSION 0.1.0
     DESCRIPTION "experimentation"
     HOMEPAGE_URL "https://example.com/"
-    LANGUAGES NONE
+    LANGUAGES C CXX
 )
 
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
+
+include(cmake/lib/json.cmake)
+include(cmake/lib/opencv.cmake)
+include(cmake/lib/openmp.cmake)
+include(cmake/lib/raylib.cmake)
+include(cmake/lib/raylib-cpp.cmake)
+include(cmake/lib/perlin_noise.cmake)
+
+# -D_FORTIFY_SOURCE=3
 
 # ---- Declare library ----
 

@@ -5,15 +5,6 @@ project(experimentationExamples C CXX)
 include(../cmake/project-is-top-level.cmake)
 include(../cmake/folders.cmake)
 
-include(../cmake/lib/json.cmake)
-include(../cmake/lib/opencv.cmake)
-include(../cmake/lib/openmp.cmake)
-include(../cmake/lib/raylib.cmake)
-include(../cmake/lib/raylib-cpp.cmake)
-include(../cmake/lib/perlin_noise.cmake)
-
-#include(../cmake/lib/zlib.cmake)
-#include(../cmake/lib/mcmap.cmake)
 
 if(PROJECT_IS_TOP_LEVEL)
   find_package(experimentation REQUIRED)
@@ -26,8 +17,8 @@ function(add_example_cpp NAME PATH)
   target_link_libraries("${NAME}" PRIVATE nlohmann_json::nlohmann_json)
   target_link_libraries("${NAME}" PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries("${NAME}" PRIVATE raylib raylib_cpp)
-  #target_link_libraries("${NAME}" PRIVATE mcmap_core)
   target_link_libraries("${NAME}" PRIVATE ${OpenCV_LIBS})
+  
   # target_link_libraries("${NAME}" PRIVATE perlin_noise)
   target_compile_features("${NAME}" PRIVATE cxx_std_20)
   add_custom_target("run_${NAME}" COMMAND "${NAME}" VERBATIM)
@@ -53,9 +44,12 @@ add_example_cpp(rect raylib/rect)
 add_example_cpp(cube raylib/cube)
 add_example_cpp(perlin_noise raylib/perlin_noise)
 add_example_cpp(bench raylib/bench)
+add_example_cpp(block raylib/block)
+add_example_cpp(model raylib/model)
 
 # OpenCV
 add_example_cpp(pixel_counter pixel_counter)
+add_example_cpp(opencv_online opencv_online)
 
 # Minecraft
 # add_example_cpp(mc_readchunk mc_readchunk)
