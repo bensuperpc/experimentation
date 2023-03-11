@@ -7,7 +7,7 @@ include(../cmake/folders.cmake)
 include(../cmake/windows-set-path.cmake)
 
 function(add_test_fn TEST_NAME)
-  add_executable("${TEST_NAME}" "source/${TEST_NAME}.cpp")
+  add_executable("${TEST_NAME}" "test/${TEST_NAME}.cpp")
   target_link_libraries("${TEST_NAME}" PRIVATE experimentation::experimentation gtest_main)
 
   if (OpenMP_FOUND OR OpenMP_CXX_FOUND)
@@ -19,13 +19,12 @@ function(add_test_fn TEST_NAME)
     target_link_libraries("${TEST_NAME}" PRIVATE CUDA::cudart)
   endif()
 
-
   add_test(NAME "${TEST_NAME}" COMMAND $<TARGET_FILE:${TEST_NAME}>)
   #target_compile_features("${TEST_NAME}" PRIVATE cxx_std_20)
 endfunction()
 
 function(add_bench_fn BENCH_NAME)
-  add_executable("${BENCH_NAME}" "source/${BENCH_NAME}.cpp")
+  add_executable("${BENCH_NAME}" "bench/${BENCH_NAME}.cpp")
   target_link_libraries("${BENCH_NAME}" PRIVATE experimentation::experimentation benchmark::benchmark_main)
 
   if (OpenMP_FOUND OR OpenMP_CXX_FOUND)
@@ -49,14 +48,15 @@ if(NOT WIN32)
   include(../cmake/lib/gtest.cmake)
   include(../cmake/lib/benchmark.cmake)
   # Add tests
-  add_test_fn(experimentation_test)
-  add_test_fn(math_test)
+  add_test_fn(experimentation)
+  add_test_fn(math)
 
   # Add bench
-  #add_bench_fn(vector_add_bench)
-  #add_bench_fn(math_bench)
-  #add_bench_fn(string_bench)
-  #add_bench_fn(experimentation_bench)
+  #add_bench_fn(vector_add)
+  #add_bench_fn(math)
+  #add_bench_fn(string)
+  #add_bench_fn(experimentation)
+  #add_bench_fn(call_member)
 endif()
 
 # ---- End-of-file commands ----

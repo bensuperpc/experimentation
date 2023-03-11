@@ -21,6 +21,12 @@ cmake -S . -B build
 cmake --build build --config Release
 ```
 
+If you want to keep things simple, you can use the `Makefile`, it will take care of all configuration and building steps for you:
+
+```sh
+make base # Or "debug", "release", "base-clang" ...
+```
+
 ### Building with MSVC
 
 Note that MSVC by default is not standards compliant and you need to pass some

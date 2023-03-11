@@ -5,7 +5,9 @@
 #include <string>
 #include <vector>
 
+#if __has_include("experimentation/filesystem.hpp")
 #include "experimentation/filesystem.hpp"
+#endif
 
 auto main() -> int
 {
@@ -20,12 +22,13 @@ auto main() -> int
 
     // List all files in the current directory
     std::vector<std::string> list;
+    #if __has_include("experimentation/filesystem.hpp")
     benlib::filesystem::experimentation::list_all_files(list, ".");
-    /*
+    #else
     for (const auto& entry : std::filesystem::recursive_directory_iterator(".")) {
       list.emplace_back(entry.path().string());
     }
-    */
+    #endif
 
     // Shuffle the list with a random generator
     std::random_device rd;

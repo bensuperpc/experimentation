@@ -67,6 +67,88 @@ the project:
 }
 ```
 
+For example, if you are on linux with 8c/16t CPU:
+
+```json
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 14,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev-common",
+      "hidden": true,
+      "inherits": ["dev-mode", "clang-tidy", "cppcheck"],
+      "cacheVariables": {
+        "BUILD_MCSS_DOCS": "ON"
+      }
+    },
+    {
+      "name": "dev-linux",
+      "binaryDir": "${sourceDir}/build/dev-linux",
+      "inherits": ["dev-common", "ci-linux"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "dev-darwin",
+      "binaryDir": "${sourceDir}/build/dev-darwin",
+      "inherits": ["dev-common", "ci-darwin"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "dev-win64",
+      "binaryDir": "${sourceDir}/build/dev-win64",
+      "inherits": ["dev-common", "ci-win64"],
+      "environment": {
+        "UseMultiToolTask": "true",
+        "EnforceProcessCountAcrossBuilds": "true"
+      }
+    },
+    {
+      "name": "dev",
+      "binaryDir": "${sourceDir}/build/dev",
+      "inherits": "dev-linux"
+    },
+    {
+      "name": "dev-coverage",
+      "binaryDir": "${sourceDir}/build/coverage",
+      "inherits": ["dev-mode", "coverage-linux"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "configuration": "Debug",
+      "jobs": 16
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 16,
+        "noTestsAction": "error"
+      }
+    }
+  ]
+}
+```
+
 You should replace `<os>` in your newly created presets file with the name of
 the operating system you have, which may be `win64`, `linux` or `darwin`. You
 can see what these correspond to in the

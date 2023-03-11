@@ -27,13 +27,14 @@ function(add_example_cpp NAME PATH)
 endfunction()
 
 # filesytem
-add_example_cpp(list_all_files standard/list_all_files)
-add_example_cpp(thanos standard/thanos)
+add_example_cpp(list_all_files standard/filesystem/list_all_files)
+add_example_cpp(thanos standard/filesystem/thanos)
+add_example_cpp(recurvice standard/filesystem/recurvice)
 
-add_example_cpp(call_function_from_string call_function_from_string)
+add_example_cpp(call_function call_function)
 
 # sort
-add_example_cpp(sort sort)
+add_example_cpp(sort standard/sort)
 
 # json
 add_example_cpp(json_dump json_dump)

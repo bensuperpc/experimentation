@@ -7,6 +7,8 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 
+// https://www.geotests.net/couleurs/frequences_en.html
+
 struct Pixel
 {
         uchar r, g, b;
@@ -27,27 +29,29 @@ auto main(int argc, char** argv) -> int
     }
 
     std::vector<Pixel> pixels;
-
     pixels.reserve(image.rows * image.cols);
-#pragma omp parallel for schedule(auto)
+
+//#pragma omp parallel for schedule(auto)
     for (int i = 0; i < image.rows; ++i) {
-        cv::Vec3b* pixel = image.ptr<cv::Vec3b>(i);
         for (int j = 0; j < image.cols; ++j) {
+            auto* pixel = image.ptr<cv::Vec3b>(i);
+
             auto it = std::find_if(pixels.begin(),
                                    pixels.end(),
                                    [&](const Pixel& p)
-                                   { return p.r == pixel[j][2] && p.g == pixel[j][1] && p.b == pixel[j][0]; });
+                                   { return (p.r == pixel[j][2]) && (p.g == pixel[j][1]) && (p.b == pixel[j][0]); });
 
-#pragma omp critical
             if (it != pixels.end()) {
-                ++it->count;
+//#pragma omp critical
+                it->count += 1;
             } else {
+//#pragma omp critical
                 pixels.push_back({pixel[j][2], pixel[j][1], pixel[j][0], 1});
             }
         }
     }
 
-    std::sort(pixels.begin(), pixels.end(), [](const Pixel& a, const Pixel& b) { return a.count > b.count; });
+    std::sort(pixels.begin(), pixels.end(), [](const Pixel& a, const Pixel& b) { return a.count < b.count; });
 
     std::cout << std::left << std::setw(6) << "r" << std::setw(6) << "g" << std::setw(6) << "b" << std::setw(8)
               << "count" << std::endl;

@@ -33,3 +33,5 @@
 
 
 build/*
+*.png
+.vscode/settings.json

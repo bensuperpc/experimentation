@@ -52,7 +52,10 @@ $(DOCKCROSS_IMAGE):
 	./dockcross-$@ ninja -C build/$@
 
 .PHONY: docker
-docker: $(DOCKCROSS_IMAGE)
+docker:
+	docker buildx build --platform linux/amd64 -t bensuperpc/experimentation:latest .
+	docker run -it --rm -v "$(shell pwd):/app" --workdir /app --user "$(shell id -u):$(shell id -g)" \
+		bensuperpc/experimentation:latest
 
 .PHONY: all
 all: release debug minsizerel coverage relwithdebinfo minsizerel relwithdebinfo release-clang \

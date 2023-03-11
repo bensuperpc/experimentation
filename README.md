@@ -1,19 +1,27 @@
 # experimentation
 
-This is the experimentation project.
+This is a project for experimenting C and C++ things, sometimes it becomes a real project.
 
-# Building and installing
+## Table of contents
+
+* [Building and installing](#building-and-installing)
+* [Contributing](#contributing)
+* [Licensing](#licensing)
+* [Sources](#sources)
+
+## Building and installing
 
 See the [BUILDING](BUILDING.md) document.
 
-# Contributing
+## Contributing
 
 See the [CONTRIBUTING](CONTRIBUTING.md) document.
 
-# Licensing
+## Licensing
 
-<!--
-Please go to https://choosealicense.com/licenses/ and choose a license that
-fits your needs. The recommended license for a project of this type is the
-Boost Software License 1.0.
--->
+See the [LICENSE](LICENSE) file.
+
+## Sources
+
+If you want to know where this project gets its sources from.
+See the [SOURCES](SOURCES.md) document.

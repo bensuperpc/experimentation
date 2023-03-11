@@ -6,6 +6,35 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 
+std::vector<char> read_file(const std::string& file_name)
+{
+    std::ifstream bin_file(file_name, std::ios::binary);
+
+    if (!bin_file.is_open()) {
+        std::cout << "Could not open file" << std::endl;
+        return {};
+    }
+    std::vector<char> file_buffer =
+        std::vector<char>(std::istreambuf_iterator<char>(bin_file), std::istreambuf_iterator<char>());
+
+    bin_file.close();
+
+    return file_buffer;
+}
+
+void write_file(const std::string& file_name, std::vector<char>& file_buffer)
+{
+    std::ofstream out_stream(file_name, std::ios::binary);
+
+    if (!out_stream.is_open()) {
+        std::cout << "Could not open file" << std::endl;
+        return;
+    }
+
+    out_stream.write(reinterpret_cast<char*>(file_buffer.data()), file_buffer.size());
+    out_stream.close();
+}
+
 auto main(int argc, char** argv) -> int
 {
     if (argc != 2) {
@@ -13,74 +42,53 @@ auto main(int argc, char** argv) -> int
         return -1;
     }
 
-    std::ifstream bin_file(std::string(argv[1]), std::ios::binary);
+    std::string input_image_name = argv[1];
+    std::vector<char> file_buffer_in = read_file(input_image_name);
 
-    if (!bin_file.is_open()) {
-        std::cout << "Could not open file" << std::endl;
-        return -1;
-    }
-    std::vector<uint8_t> file_buffer((std::istreambuf_iterator<char>(bin_file)), (std::istreambuf_iterator<char>()));
+    std::cout << "File size: " << file_buffer_in.size() << std::endl;
+    std::cout << "First 1 byte: " << static_cast<int>(file_buffer_in[0]) << std::endl;
 
-    bin_file.close();
+    // Generate the image from the buffer (black and white)
+    size_t image_size = std::ceil(std::sqrt(file_buffer_in.size()));
 
-    // Write the file to disk
+    std::cout << "Image size: " << image_size << std::endl;
 
-    std::ofstream bin_file2(std::string(argv[1]) + ".copy", std::ios::binary);
+    // Create the image
+    cv::Mat image(image_size, image_size, CV_8UC3, cv::Scalar(128, 56, 45));
 
-    if (!bin_file2.is_open()) {
-        std::cout << "Could not open file" << std::endl;
-        return -1;
-    }
-
-    bin_file2.write(reinterpret_cast<char*>(file_buffer.data()), file_buffer.size());
-
-    bin_file2.close();
-
-
-    /*
-    cv::Mat image;
-    image = cv::imread(argv[1], 1);
-
-    if (!image.data) {
-        std::cout << "Could not open or find the image" << std::endl;
-        return -1;
+    for (size_t i = 0; i < file_buffer_in.size(); i++) {
+        int x = i % image_size;
+        int y = i / image_size;
+        image.ptr<cv::Vec3b>(y)[x][0] = file_buffer_in[i];
+        image.ptr<cv::Vec3b>(y)[x][1] = file_buffer_in[i];
+        image.ptr<cv::Vec3b>(y)[x][2] = file_buffer_in[i];
     }
 
-    std::vector<Pixel> pixels;
+    // Write the image to disk
+    cv::imwrite(std::string(argv[1]) + ".gen.png", image);
 
-    pixels.reserve(image.rows * image.cols);
-#pragma omp parallel for schedule(auto)
-    for (int i = 0; i < image.rows; ++i) {
-        cv::Vec3b* pixel = image.ptr<cv::Vec3b>(i);
-        for (int j = 0; j < image.cols; ++j) {
-            auto it = std::find_if(pixels.begin(),
-                                   pixels.end(),
-                                   [&](const Pixel& p)
-                                   { return p.r == pixel[j][2] && p.g == pixel[j][1] && p.b == pixel[j][0]; });
+    // Read the image from disk and generate the buffer to write to disk
+    cv::Mat image_out = cv::imread(std::string(argv[1]) + ".gen.png");
 
-#pragma omp critical
-            if (it != pixels.end()) {
-                ++it->count;
-            } else {
-                pixels.push_back({pixel[j][2], pixel[j][1], pixel[j][0], 1});
-            }
+    std::vector<char> file_buffer_out;
+
+    int termination = 0;
+    for (size_t i = 0; i < image_size; i++) {
+        for (size_t j = 0; j < image_size; j++) {
+            if (image_out.ptr<cv::Vec3b>(i)[j][0] != image_out.ptr<cv::Vec3b>(i)[j][1] ||
+                image_out.ptr<cv::Vec3b>(i)[j][1] != image_out.ptr<cv::Vec3b>(i)[j][2])
+                {
+                    break;
+                }
+
+            file_buffer_out.push_back(image_out.ptr<cv::Vec3b>(i)[j][0]);
         }
     }
 
-    std::sort(pixels.begin(), pixels.end(), [](const Pixel& a, const Pixel& b) { return a.count > b.count; });
+    std::cout << "File size: " << file_buffer_out.size() << std::endl;
+    std::cout << "First 1 byte: " << static_cast<int>(file_buffer_out[0]) << std::endl;
 
-    std::cout << std::left << std::setw(6) << "r" << std::setw(6) << "g" << std::setw(6) << "b" << std::setw(8)
-              << "count" << std::endl;
-    for (const auto& p : pixels) {
-        std::cout << std::left << std::setw(6) << static_cast<int>(p.r) << std::setw(6) << static_cast<int>(p.g)
-                  << std::setw(6) << static_cast<int>(p.b) << std::setw(8) << p.count << std::endl;
-    }
-    */
+    write_file(std::string(argv[1]) + ".gen.final.png", file_buffer_out);
 
-    /*
-    cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Display Image", image);
-    cv::waitKey(0);
-    */
     return 0;
 }
