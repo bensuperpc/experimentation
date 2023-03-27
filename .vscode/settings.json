@@ -85,6 +85,8 @@
         "regex": "cpp",
         "filesystem": "cpp",
         "ranges": "cpp",
-        "*.m": "cpp"
-    }
+        "*.m": "cpp",
+        "coroutine": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
 }

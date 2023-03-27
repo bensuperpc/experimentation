@@ -19,10 +19,9 @@ RUN apt-get update && apt-get install -y \
     ninja-build cmake build-essential \
     valgrind git gdb ffmpeg \
     ccache distcc \
+    parallel cloc \
     && apt-get -y autoremove --purge \
     && rm -rf /var/lib/apt/lists/*
-
-# Add: parallel cloc
 
 WORKDIR /app
 

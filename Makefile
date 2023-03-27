@@ -57,6 +57,8 @@ docker:
 	docker run -it --rm -v "$(shell pwd):/app" --workdir /app --user "$(shell id -u):$(shell id -g)" \
 		bensuperpc/experimentation:latest
 
+#   --security-opt no-new-privileges --cap-drop ALL --tmpfs /tmp:exec --tmpfs /run:exec \
+
 .PHONY: all
 all: release debug minsizerel coverage relwithdebinfo minsizerel relwithdebinfo release-clang \
 	debug-clang base base-clang sanitize sanitize-clang gprof $(DOCKCROSS_IMAGE) docker valgrind gdb
