@@ -27,13 +27,7 @@ int main()
     raylib::Window window(screen_width, screen_height, "Minecube");
     SetTargetFPS(target_fps);
 
-    raylib::Camera camera(raylib::Vector3(4.0f, 4.0f, 4.0f),
-                          raylib::Vector3(0.0f, 0.0f, 0.0f),
-                          raylib::Vector3(0.0f, 1.0f, 0.0f),
-                          60.0f,
-                          CAMERA_PERSPECTIVE);
-
-    camera.SetMode(CAMERA_ORBITAL);
+    raylib::Camera camera({ 0.2f, 0.4f, 0.2f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, 45.0f);
 
     // create a texture from an image
     raylib::Image img = GenImageChecked(256, 256, 32, 32, GREEN, RED);
@@ -65,7 +59,7 @@ int main()
             continue;
         }
 
-        camera.Update();
+        camera.Update(CAMERA_ORBITAL);
 
         if (IsKeyPressed(KEY_F5)) {
             // Take screenshot

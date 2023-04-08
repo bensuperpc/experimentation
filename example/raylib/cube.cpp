@@ -64,14 +64,7 @@ int main()
     std::vector<chunk> chunks = std::vector<chunk>(chunk_size);
     new_generator.generate_word(chunks, chunk_x, chunk_y, chunk_z);
 
-    raylib::Camera camera(
-        raylib::Vector3(static_cast<float>(64 * 2.0f / 4), (64 / 2) * 2.0f + 24.0f, static_cast<float>(64 * 2.0f / 4)),
-        raylib::Vector3(static_cast<float>(64 * 2.0f / 2), 0.0f, static_cast<float>(64 * 2.0f / 2)),
-        raylib::Vector3(0.0f, 1.0f, 0.0f),
-        60.0f,
-        CAMERA_PERSPECTIVE);
-
-    camera.SetMode(CAMERA_FIRST_PERSON);
+    raylib::Camera camera({ 0.2f, 0.4f, 0.2f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, 45.0f);
 
     // Ray and closest_collision
     raylib::Ray ray;
@@ -93,7 +86,7 @@ int main()
             continue;
         }
 
-        camera.Update();
+        camera.Update(CAMERA_FIRST_PERSON);
 
         closest_collision = {0};
         closest_collision.hit = false;

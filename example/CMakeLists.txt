@@ -36,6 +36,9 @@ add_example_cpp(call_function call_function)
 # sort
 add_example_cpp(sort standard/sort)
 
+# Other
+add_example_cpp(password_generator password_generator)
+
 # json
 add_example_cpp(json_dump json_dump)
 add_example_cpp(json_letter json_letter)

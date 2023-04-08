@@ -1,5 +1,10 @@
-ARG DOCKER_IMAGE=debian:unstable
+ARG DOCKER_IMAGE=debian:bookworm
 FROM $DOCKER_IMAGE
+
+ENV LANG=en_US.utf8
+ENV DEBIAN_FRONTEND=noninteractive
+
+#SHELL ["/bin/bash", "-c", "-l"]
 
 RUN apt-get update && apt-get install -y \
     python3-dev python3-pip python3-setuptools \
@@ -13,20 +18,24 @@ RUN apt-get update && apt-get install -y \
     llvm-dev \
     nlohmann-json3-dev \
     libpoco-dev \
+    libspdlog-dev \
+    libjsoncpp-dev \
+    uuid-dev \
+    openssl libssl-dev \
+    zlib1g-dev \
     libx11-dev libxrandr-dev xinput libxcb-xinput-dev \
     libxcursor-dev libxi-dev libxinerama-dev libxkbcommon-dev \
     libvulkan-dev freeglut3-dev \
     ninja-build cmake build-essential \
     valgrind git gdb ffmpeg \
-    ccache distcc \
+    ccache distcc icecc \
     parallel cloc \
     && apt-get -y autoremove --purge \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-#ENV TERM xterm-256color
-#SHELL ["/bin/bash", "-c", "-l"]
-#ENTRYPOINT ["bash", "-l"]
+ENV TERM xterm-256color
+ENTRYPOINT ["/bin/bash", "-l"]
 
 #CMD [ "make" ]

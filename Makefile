@@ -55,9 +55,11 @@ $(DOCKCROSS_IMAGE):
 docker:
 	docker buildx build --platform linux/amd64 -t bensuperpc/experimentation:latest .
 	docker run -it --rm -v "$(shell pwd):/app" --workdir /app --user "$(shell id -u):$(shell id -g)" \
+		--security-opt no-new-privileges --cap-drop ALL \
+		--cpus 16.0 --memory 12GB \
 		bensuperpc/experimentation:latest
 
-#   --security-opt no-new-privileges --cap-drop ALL --tmpfs /tmp:exec --tmpfs /run:exec \
+#  --read-only --security-opt no-new-privileges --cap-drop ALL --tmpfs /tmp:exec --tmpfs /run:exec --cap-add SYS_PTRACE \
 
 .PHONY: all
 all: release debug minsizerel coverage relwithdebinfo minsizerel relwithdebinfo release-clang \
@@ -171,6 +173,7 @@ cloc:
 
 .PHONY: update
 update:
+	git submodule update --init --recursive
 	git pull --recurse-submodules --all --progress
 
 .PHONY: clean

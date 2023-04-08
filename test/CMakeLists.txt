@@ -55,7 +55,8 @@ if(NOT WIN32)
 
   # Add bench
   #add_bench_fn(map)
-  add_bench_fn(json_item)
+  #add_bench_fn(json_item)
+  add_bench_fn(randomize)
   #add_bench_fn(vector_matrix)
   #add_bench_fn(vector_op)
   #add_bench_fn(math)

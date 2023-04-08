@@ -34,7 +34,6 @@ int main(void)
 
     int currentModel = 0;
 
-    SetCameraMode(camera, CAMERA_FIRST_PERSON); // Set a first person camera mode
     //SetCameraMode(camera, CAMERA_ORBITAL); // Set an orbital camera mode
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -44,7 +43,7 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera);
+        UpdateCamera(&camera, CAMERA_FIRST_PERSON);
         //----------------------------------------------------------------------------------
 
         // Draw
