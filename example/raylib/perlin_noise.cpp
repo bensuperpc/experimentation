@@ -13,7 +13,7 @@
 #include "raylib-cpp.hpp"
 #include "raylib.h"
 
-void generate(std::vector<unsigned char>& v, int screen_width, int screenHeight, siv::PerlinNoise& perlin)
+void generate(std::vector<unsigned char>& v, const int screen_width, const int screenHeight, siv::PerlinNoise& perlin)
 {
 #pragma omp parallel for collapse(2) schedule(auto)
     for (int y = 0; y < screenHeight; y++) {
@@ -45,20 +45,6 @@ auto main() -> int
     siv::PerlinNoise perlin {seed};
 
     generate(v, screen_width, screenHeight, perlin);
-
-    /*
-    std::random_device rd;
-    const std::uint64_t seed = (static_cast<std::uint64_t>(rd()) << 32) | rd();
-    std::mt19937_64 rng(seed);
-
-    // uniform_int_distribution is a template class
-    std::uniform_int_distribution<int> uniform_dist(0, 255);
-
-    // Fill vector with random numbers
-    std::vector<int> v(screen_width * screenHeight, 0);
-
-    std::generate(v.begin(), v.end(), [&]() { return uniform_dist(rng); });
-    */
 
     // Create image buffer
     raylib::Image gridImage(screen_width, screenHeight, RAYWHITE);

@@ -18,6 +18,8 @@ function(add_example_cpp NAME PATH)
   target_link_libraries("${NAME}" PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries("${NAME}" PRIVATE raylib raylib_cpp)
   target_link_libraries("${NAME}" PRIVATE ${OpenCV_LIBS})
+  target_link_libraries("${NAME}" PRIVATE raylib raylib_cpp)
+  #target_link_libraries("${NAME}" PRIVATE drogon)
   
   # target_link_libraries("${NAME}" PRIVATE perlin_noise)
   target_compile_features("${NAME}" PRIVATE cxx_std_20)
@@ -30,6 +32,8 @@ endfunction()
 add_example_cpp(list_all_files standard/filesystem/list_all_files)
 add_example_cpp(thanos standard/filesystem/thanos)
 add_example_cpp(recurvice standard/filesystem/recurvice)
+
+add_example_cpp(files_on_demand files_on_demand)
 
 add_example_cpp(call_function call_function)
 
@@ -57,5 +61,9 @@ add_example_cpp(opencv_online opencv_online)
 
 # Minecraft
 # add_example_cpp(mc_readchunk mc_readchunk)
+
+# Drogon
+#add_example_cpp(helloworld_drogon drogon/helloworld_drogon)
+#add_example_cpp(base_drogon drogon/base_drogon)
 
 # Math
