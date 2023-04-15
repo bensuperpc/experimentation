@@ -1,86 +1,96 @@
-#include "experimentation/file.hpp"
+#include "experimentation/file_on_demand.hpp"
 
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <iterator>
 
-class image final : public file<std::vector<char>> {
+class image final : public file_on_demand<std::vector<char>> {
     public:
-        image(const std::filesystem::path &p) : file(p) {
+        image(const std::filesystem::path &p) : file_on_demand(p) {
             std::cout << "image" << std::endl;
         }
-    void load() override {
-        std::cout << "load" << std::endl;
 
-        if (_is_loaded) {
+        image(const image&) = delete;
+        image& operator=(const image&) = delete;
+
+        image(image&& other) : file_on_demand(std::move(other)) {
+            std::cout << "image move" << std::endl;
+        }
+
+    void load() override {
+        if (_data.has_value()) {
+            std::cout << "File: " << _path << " is already loaded" << std::endl;
             return;
         }
 
         if (!std::filesystem::exists(_path)) {
-            std::cout << "File does not exist" << std::endl;
+            std::cout << "File: " << _path << " does not exist" << std::endl;
             return;
         }
 
-        std::ifstream file_;
+        std::ifstream __file;
 
-        file_.exceptions(std::ifstream::badbit
+        __file.unsetf(std::ios::skipws);
+
+        __file.exceptions(std::ifstream::badbit
             | std::ifstream::failbit
             | std::ifstream::eofbit);
 
-        file_.open(_path, std::ifstream::in | std::ifstream::binary);
-        file_.seekg(0, std::ios::end);
+        __file.open(_path, std::ifstream::in | std::ifstream::binary);
+        std::cout << "File: " << _path << " is open" << std::endl;
 
-        std::streampos length(file_.tellg());
-
-        if (length) {
-            file_.seekg(0, std::ios::beg);
-            _data.resize(static_cast<std::size_t>(length));
-            file_.read(&_data.front(), static_cast<std::size_t>(length));
+        if (!__file.is_open() || __file.bad()) {
+            std::cout << "File: " << _path << " is not open" << std::endl;
+            return;
         }
-        
-        _is_loaded = true;
 
-        std::cout << "Is loaded" << std::endl;  
+        __file.seekg(0, std::ios::end);
+        std::streampos length(__file.tellg());
+        __file.seekg(0, std::ios::beg);
+
+        std::vector<char> __data;
+        
+        __data.resize(static_cast<std::size_t>(length));
+        __file.read(&__data.front(), static_cast<std::streamsize>(length));
+
+        _data = std::move(__data);
+
+        std::cout << "File: " << _path << " is loaded" << std::endl;
     }
 
     void unload() override {
         std::cout << "unload" << std::endl;
-        if (!_is_loaded) {
-            return;
-        }
-        
-        _is_loaded = false;
-        _data.clear();
-        _data.shrink_to_fit();
+        _data.reset();
     }
 
     void write() {
-        std::cout << "write" << std::endl;
-        if (!_is_loaded) {
+        std::cout << "File: " << _path << " is writing" << std::endl;
+        if (!_data.has_value()) {
             return;
         }
 
-        std::ofstream file_;
-        file_.exceptions(std::ofstream::badbit
+        std::ofstream __file;
+        __file.exceptions(std::ofstream::badbit
             | std::ofstream::failbit
             | std::ofstream::eofbit);
         
-        file_.open(_path, std::ofstream::out | std::ofstream::binary);
-        file_.write(&_data.front(), _data.size());
+        __file.open(_path, std::ofstream::out | std::ofstream::binary);
+        __file.write(&_data.value().front(), static_cast<std::streamsize>(_data.value().size()));
 
-        std::cout << "Is written" << std::endl;
+        std::cout << "File: " << _path << " is written" << std::endl;
     }
 };
 
 int main(int argc, char **argv) {
-    // Get the file path from the command line
+    // Get the file_on_demand path from the command line
 
     std::filesystem::path p = argv[1];
     image i(p);
     //i.load();
-    std::cout << i.get_data().size() << " Ko" << std::endl;
-    //i.write();
+    std::cout << i.data().size() << " Ko" << std::endl;
+    i.write();
     i.unload();
     return 0;
 }
