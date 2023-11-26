@@ -137,3 +137,8 @@ static void ClassFnBind(benchmark::State& state)
     state.SetBytesProcessed(state.iterations() * sizeof(uint64_t));
 }
 BENCHMARK(ClassFnBind)->Name("ClassFnBind")->RangeMultiplier(10)->Range(1, 1)->ThreadRange(1, 1);
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

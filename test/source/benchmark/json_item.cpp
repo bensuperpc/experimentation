@@ -94,3 +94,8 @@ static void json_item(benchmark::State& state)
 }
 BENCHMARK_TEMPLATE(json_item, json_item_cached)->Name("cached_json")->RangeMultiplier(16)->Range(256, 4096)->ThreadRange(1, 1);
 BENCHMARK_TEMPLATE(json_item, json_item_uncached)->Name("uncached_json")->RangeMultiplier(16)->Range(256, 4096)->ThreadRange(1, 1);
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

@@ -7,14 +7,6 @@
   },
   "configurePresets": [
     {
-      "name": "dev-common",
-      "hidden": true,
-      "inherits": ["dev-mode", "clang-tidy", "cppcheck"],
-      "cacheVariables": {
-        "BUILD_MCSS_DOCS": "ON"
-      }
-    },
-    {
       "name": "dev-linux",
       "binaryDir": "${sourceDir}/build/dev-linux",
       "inherits": ["dev-common", "ci-linux"],

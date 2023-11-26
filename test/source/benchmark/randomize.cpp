@@ -48,3 +48,8 @@ static void randomize_tp_test(benchmark::State& state)
     state.SetBytesProcessed(state.iterations() * sizeof(T));
 }
 BENCHMARK_TEMPLATE(randomize_tp_test, uint64_t)->Name("randomize_tp")->RangeMultiplier(16)->Range(256, 4096)->ThreadRange(1, 1);
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

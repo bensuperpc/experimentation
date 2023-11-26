@@ -93,3 +93,8 @@ BENCHMARK_TEMPLATE(vector_3D, uint32_t)->Name("vector_3D_uint32_t")->RangeMultip
 BENCHMARK_TEMPLATE(vector_3D, uint_fast32_t)->Name("vector_3D_uint_fast32_t")->RangeMultiplier(8)->Range(1, 512)->ThreadRange(1, 1);
 BENCHMARK_TEMPLATE(vector_3D, uint64_t)->Name("vector_3D_uint64_t")->RangeMultiplier(8)->Range(1, 512)->ThreadRange(1, 1);
 BENCHMARK_TEMPLATE(vector_3D, uint_fast64_t)->Name("vector_3D_uint_fast64_t")->RangeMultiplier(8)->Range(1, 512)->ThreadRange(1, 1);
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

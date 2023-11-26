@@ -8,7 +8,7 @@ FetchContent_Declare(drogon
 
 # Reset CXX_FLAGS to avoid warnings from drogon
 set(CMAKE_CXX_FLAGS_OLD "${CMAKE_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "-std=c++17")
+set(CMAKE_CXX_FLAGS "-std=c++17 -O3")
 
 FetchContent_MakeAvailable(drogon)
 

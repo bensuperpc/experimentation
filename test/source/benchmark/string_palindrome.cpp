@@ -52,3 +52,8 @@ static void string_is_palindrome_std_v2(benchmark::State& state)
                             * sizeof(decltype(benlib::string::experimentation::is_palindrome_std_v2(str))));
 }
 BENCHMARK(string_is_palindrome_std_v2)->Name("string_is_palindrome_std_v2")->RangeMultiplier(16)->Range(1, 1048576);
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

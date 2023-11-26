@@ -16,3 +16,8 @@ static void schwarzschild_radius(benchmark::State& state)
                             * sizeof(decltype(benlib::math::experimentation::schwarzschild_radius(size))));
 }
 BENCHMARK(schwarzschild_radius)->Name("schwarzschild_radius")->RangeMultiplier(16)->Range(1, 1048576);
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

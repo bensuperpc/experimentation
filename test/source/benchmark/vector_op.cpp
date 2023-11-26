@@ -250,3 +250,8 @@ BENCHMARK_TEMPLATE(vector_xor, uint_fast32_t)->Name("vector_xor_uint_fast32_t")-
 BENCHMARK_TEMPLATE(vector_xor, uint64_t)->Name("vector_xor_uint64_t")->RangeMultiplier(32)->Range(1, 1048576)->ThreadRange(1, 8);
 BENCHMARK_TEMPLATE(vector_xor, uint_fast64_t)->Name("vector_xor_uint_fast64_t")->RangeMultiplier(32)->Range(1, 1048576)->ThreadRange(1, 8);
 
+
+int main(int argc, char** argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

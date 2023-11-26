@@ -11,3 +11,8 @@ TEST(experimentation, basic1)
 
     EXPECT_EQ(result, expected);
 }
+
+auto main(int argc, char** argv) -> int {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

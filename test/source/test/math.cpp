@@ -43,3 +43,8 @@ TEST(experimentation, basic2)
     EXPECT_EQ(pair.first, a);
     EXPECT_EQ(pair.second, b);
 }
+
+auto main(int argc, char** argv) -> int {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

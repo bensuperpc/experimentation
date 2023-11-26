@@ -86,7 +86,10 @@
         "filesystem": "cpp",
         "ranges": "cpp",
         "*.m": "cpp",
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "__nullptr": "cpp",
+        "format": "cpp",
+        "stdfloat": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
 }
