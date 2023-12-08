@@ -55,22 +55,26 @@ function(test_bench_generator TEST_BENCH_NAME IS_TEST ADD_TO_TEST)
 endfunction()
 
 if(NOT WIN32)
-  include(../cmake/lib/gtest.cmake)
-  include(../cmake/lib/benchmark.cmake)
+    include(../cmake/lib/gtest.cmake)
+    include(../cmake/lib/benchmark.cmake)
 
-  test_bench_generator(experimentation true true)
+    test_bench_generator(experimentation true true)
 
-  # Add bench
-  test_bench_generator(map false false)
-  test_bench_generator(json_item false false)
-  test_bench_generator(randomize false false)
-  test_bench_generator(vector_matrix false false)
-  test_bench_generator(vector_op false false)
-  test_bench_generator(math false false)
-  test_bench_generator(string_palindrome false false)
-  test_bench_generator(call_member false false)
-
-
+    # Add bench
+    test_bench_generator(map false false)
+    test_bench_generator(json_item false false)
+    test_bench_generator(randomize false false)
+    test_bench_generator(vector_matrix false false)
+    test_bench_generator(math false false)
+    test_bench_generator(string_palindrome false false)
+    test_bench_generator(call_member false false)
+    test_bench_generator(vectorSum false false)
+    test_bench_generator(vectorAnd false false)
+    test_bench_generator(vectorDiv false false)
+    test_bench_generator(vectorMul false false)
+    test_bench_generator(vectorSub false false)
+    test_bench_generator(vectorOr false false)
+    test_bench_generator(vectorXor false false)
 endif()
 
 # ---- End-of-file commands ----

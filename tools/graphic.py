@@ -1,4 +1,5 @@
 # Based on work: https://int-i.github.io/python/2021-11-07/matplotlib-google-benchmark-visualization/
+# Modified by: Bensuperpc
 
 from argparse import ArgumentParser
 from itertools import groupby
@@ -24,6 +25,7 @@ def extract_size_from_benchmark(benchmark):
     return bench_name.split('/')[1]  # Remove all before /
 
 if __name__ == "__main__":
+    # ./prog_name --benchmark_format=json --benchmark_out=result.json
     parser = ArgumentParser()
     parser.add_argument('path', help='benchmark result json file')
     args = parser.parse_args()
@@ -60,7 +62,7 @@ if __name__ == "__main__":
         fig, ax = plt.subplots(2, 1)
 
         fig.set_size_inches(16, 9)
-        fig.set_dpi(160)
+        fig.set_dpi(96)
 
         sns.lineplot(data=df1, x='size', y='bytes_per_second', hue='algorithm', ax=ax[0])
         sns.lineplot(data=df2, x='size', y='items_per_second', hue='algorithm', ax=ax[1])

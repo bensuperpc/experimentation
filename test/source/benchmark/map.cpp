@@ -68,7 +68,8 @@ BENCHMARK(unordered_map)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown)
     ->MeasureProcessCPUTime()
-    ->UseRealTime();
+    ->UseRealTime()
+    ->Repetitions(1);
 
 
 
