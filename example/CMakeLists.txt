@@ -48,12 +48,12 @@ add_example_cpp(json_dump json_dump)
 add_example_cpp(json_letter json_letter)
 
 # Raylib
-add_example_cpp(rect raylib/rect)
-add_example_cpp(cube raylib/cube)
-add_example_cpp(perlin_noise raylib/perlin_noise)
-add_example_cpp(bench raylib/bench)
-add_example_cpp(block raylib/block)
-add_example_cpp(model raylib/model)
+add_example_cpp(rect raylib/world_of_cube/rect)
+add_example_cpp(cube raylib/world_of_cube/cube)
+add_example_cpp(perlin_noise raylib/world_of_cube/perlin_noise)
+add_example_cpp(bench raylib/world_of_cube/bench)
+add_example_cpp(block raylib/world_of_cube/block)
+add_example_cpp(model raylib/world_of_cube/model)
 
 # OpenCV
 add_example_cpp(pixel_counter pixel_counter)

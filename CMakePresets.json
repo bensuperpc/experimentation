@@ -46,14 +46,6 @@
       }
     },
     {
-      "name": "dev-common",
-      "hidden": true,
-      "inherits": ["dev-mode", "clang-tidy", "cppcheck"],
-      "cacheVariables": {
-        "BUILD_MCSS_DOCS": "ON"
-      }
-    },
-    {
       "name": "ci-std",
       "description": "This preset makes sure the project actually builds with at least the specified standard",
       "hidden": true,
@@ -71,7 +63,7 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_CXX_FLAGS": "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -pipe -fstack-protector-strong -fstack-clash-protection -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2 -Wundef -Wshadow -Wcast-align -Wunused -Wnull-dereference -Wdouble-promotion -Wimplicit-fallthrough -Wextra-semi -Woverloaded-virtual -Wnon-virtual-dtor -Wold-style-cast",
-        "CMAKE_C_FLAGS": "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -pipe -fstack-protector-strong -fstack-clash-protection -Wall -Wextra -Wpedantic",
+        "CMAKE_C_FLAGS": "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -pipe -fstack-protector-strong -fstack-clash-protection -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2 -Wundef -Wshadow -Wcast-align -Wunused -Wnull-dereference -Wdouble-promotion",
         "CMAKE_EXE_LINKER_FLAGS": "-Wl,--allow-shlib-undefined,--as-needed,-z,noexecstack,-z,relro,-z,now",
         "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--allow-shlib-undefined,--as-needed,-z,noexecstack,-z,relro,-z,now"
       }
@@ -98,7 +90,7 @@
       "hidden": true,
       "cacheVariables": {
         "CUDA_NVCC_FLAGS": "--default-stream per-thread -arch=all-major",
-        "CUDA_ARCHITECTURES": "50;52;53;60;61;62;70;72;75;80;86",
+        "CUDA_ARCHITECTURES": "50;52;53;60;61;62;70;72;75;80;86;87",
         "CUDA_PROPAGATE_HOST_FLAGS": "ON",
         "CUDA_SEPARABLE_COMPILATION": "ON"
       }
@@ -229,6 +221,14 @@
       "hidden": false,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "dev-common",
+      "hidden": true,
+      "inherits": ["dev-mode", "clang-tidy", "cppcheck"],
+      "cacheVariables": {
+        "BUILD_MCSS_DOCS": "ON"
       }
     },
     {

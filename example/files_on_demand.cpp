@@ -1,4 +1,4 @@
-#include "experimentation/file_on_demand.hpp"
+#include "experimentation/fileOnDemand.hpp"
 
 #include <iostream>
 #include <vector>
@@ -6,16 +6,16 @@
 #include <filesystem>
 #include <iterator>
 
-class image final : public file_on_demand<std::vector<char>> {
+class image final : public fileOnDemand<std::vector<char>> {
     public:
-        image(const std::filesystem::path &p) : file_on_demand(p) {
+        image(const std::filesystem::path &p) : fileOnDemand(p) {
             std::cout << "image" << std::endl;
         }
 
         image(const image&) = delete;
         image& operator=(const image&) = delete;
 
-        image(image&& other) : file_on_demand(std::move(other)) {
+        image(image&& other) : fileOnDemand(std::move(other)) {
             std::cout << "image move" << std::endl;
         }
 
@@ -84,7 +84,7 @@ class image final : public file_on_demand<std::vector<char>> {
 };
 
 int main(int argc, char **argv) {
-    // Get the file_on_demand path from the command line
+    // Get the fileOnDemand path from the command line
 
     std::filesystem::path p = argv[1];
     image i(p);

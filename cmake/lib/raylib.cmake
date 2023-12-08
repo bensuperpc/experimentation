@@ -29,7 +29,7 @@ if (NOT raylib_FOUND AND NOT FETCHCONTENT_FULLY_DISCONNECTED)
     #message(STATUS "CMAKE_INSTALL_LIBDIR: ${CMAKE_INSTALL_LIBDIR}")
     FetchContent_Declare(raylib
         GIT_REPOSITORY https://github.com/raysan5/raylib.git
-        GIT_TAG 5.0  # 26-11-2023
+        GIT_TAG 5.0  # 08-12-2023
     )
     FetchContent_MakeAvailable(raylib)
 
